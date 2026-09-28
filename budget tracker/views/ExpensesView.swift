@@ -25,10 +25,10 @@ struct ExpensesView: View {
         _expenses = Query(filter: #Predicate<Transaction> { $0.kind == expense })
     }
     
-    func onDelete (_ indexSet: IndexSet) {
+    func onDelete (_ indexSet: IndexSet, from items: [Transaction]) {
         for index in indexSet {
-            let income = expenses[index]
-            modelContext.delete(income)
+            let expense = items[index]
+            modelContext.delete(expense)
         }
     }
     
@@ -50,7 +50,7 @@ struct ExpensesView: View {
                         ForEach(section.items) { transaction in
                             TransactionCardView(transaction: transaction)
                         }
-                        .onDelete(perform: onDelete)
+                        .onDelete { onDelete($0, from: section.items) }
                     } header: {
                         Text(headerTitle(for: section.day))
                     }
