@@ -5,6 +5,7 @@
 //  Created by Maksym Bahrov on 09.09.2026..
 //
 
+import SwiftData
 import SwiftUI
 
 @main
@@ -13,5 +14,6 @@ struct budget_trackerApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: [Category.self, Source.self, Transaction.self])
     }
 }
