@@ -9,16 +9,32 @@ import SwiftUI
 import SwiftData
 
 struct TransactionsView: View {
-    let source: Source
+    let source: Source?
     @Query private var transactions: [Transaction]
     
-    init(source: Source) {
+    init(source: Source?) {
         self.source = source
         
-        let sourceID = source.persistentModelID
-        _transactions = Query(filter: #Predicate<Transaction> {
-            $0.destination?.persistentModelID == sourceID || $0.source?.persistentModelID == sourceID
-        })
+        if let source {
+            let sourceID = source.persistentModelID
+            _transactions = Query(filter: #Predicate<Transaction> {
+                $0.destination?.persistentModelID == sourceID || $0.source?.persistentModelID == sourceID
+            })
+        } else {
+            let income = TransactionKind.income
+            let expense = TransactionKind.expense
+            _transactions = Query(filter: #Predicate<Transaction> {
+                ($0.kind != income && $0.source == nil) || ($0.kind != expense && $0.destination == nil)
+            })
+        }
+    }
+
+    private var title: String {
+        if let source {
+            String(localized: "Transactions for \(source.name)")
+        } else {
+            String(localized: "Transactions without source")
+        }
     }
     
     private var sections: [(day: Date, items: [Transaction])] {
@@ -44,7 +60,7 @@ struct TransactionsView: View {
                     }
                 }
             }
-            .navigationTitle("Transactions for \(source.name)")
+            .navigationTitle(title)
         }
     }
 }

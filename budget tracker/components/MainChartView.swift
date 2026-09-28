@@ -9,7 +9,15 @@ import SwiftUI
 import SwiftData
 import Charts
 
+/// Identifies a chart slice independently of its display name.
+private enum SliceID: Hashable {
+    case category(PersistentIdentifier)
+    /// Expenses whose category was deleted.
+    case uncategorized
+}
+
 private struct CategorySum {
+    var id: SliceID
     var name: String
     var amount: Decimal
     var color: CategoryColor
@@ -49,13 +57,19 @@ struct MainChartView: View {
     
     private var expensesByCategories: [CategorySum] {
         var spendCategories = categories.map { category in
-            CategorySum(name: category.name, amount: 0, color: category.color, systemImage: category.systemImage)
+            CategorySum(id: .category(category.persistentModelID), name: category.name, amount: 0, color: category.color, systemImage: category.systemImage)
         }
+        var uncategorized = CategorySum(id: .uncategorized, name: String(localized: "Uncategorized"), amount: 0, color: .gray, systemImage: "questionmark")
         for expense in expenses {
-            guard let category = expense.category,
-                  let index = categories.firstIndex(where: { $0.persistentModelID == category.persistentModelID })
-            else { continue }
-            spendCategories[index].amount += expense.amount
+            if let category = expense.category,
+               let index = categories.firstIndex(where: { $0.persistentModelID == category.persistentModelID }) {
+                spendCategories[index].amount += expense.amount
+            } else {
+                uncategorized.amount += expense.amount
+            }
+        }
+        if uncategorized.amount > 0 {
+            spendCategories.append(uncategorized)
         }
         return spendCategories
     }
@@ -72,23 +86,23 @@ struct MainChartView: View {
     }
 
     var body: some View {
-        Chart(expensesByCategories, id: \.name) { expense in
+        Chart(expensesByCategories, id: \.id) { expense in
             SectorMark(
                 angle: .value(expense.name, expense.amount),
                 innerRadius: .ratio(innerRadiusRatio),
-                outerRadius: selected?.name == expense.name ? .ratio(1.0) : .ratio(0.92),
+                outerRadius: selected?.id == expense.id ? .ratio(1.0) : .ratio(0.92),
                 angularInset: 1
             )
                 .cornerRadius(5)
                 .foregroundStyle(expense.color.color)
-                .opacity(selected == nil || selected?.name == expense.name ? 1 : 0.35)
+                .opacity(selected == nil || selected?.id == expense.id ? 1 : 0.35)
         }
         .chartLegend(.hidden)
         .chartAngleSelection(value: $rawSelection)
         .onChange(of: rawSelection) { _, newValue in
             guard let newValue else { return }
             let hit = category(at: newValue)
-            selected = (hit?.name == selected?.name) ? nil : hit
+            selected = (hit?.id == selected?.id) ? nil : hit
         }
         .chartBackground { chartProxy in
             GeometryReader { geometry in
@@ -129,7 +143,7 @@ struct MainChartView: View {
                 }
             }
         }
-            .animation(.snappy, value: selected?.name)
+            .animation(.snappy, value: selected?.id)
             .padding()
     }
 }

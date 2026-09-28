@@ -19,28 +19,15 @@ struct TransactionCardView: View {
     var body: some View {
         NavigationLink(destination: AddTransactionView(transaction: transaction)) {
             HStack {
-                if let category = transaction.category {
-                    CategoryImageView(systemImage: category.systemImage, color: category.color)
-                    VStack(alignment: .leading) {
-                        Text(category.name)
-                        if transaction.note != "" {
-                            Text(transaction.note)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                        .padding(.horizontal, 2)
-                        
-                } else {
+                if isTransfer {
                     CategoryImageView(systemImage: "arrow.trianglehead.2.counterclockwise.rotate.90", color: .gray)
-                    VStack(alignment: .leading) {
-                        Text("Transfer")
-                        if transaction.note != "" {
-                            Text(transaction.note)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    title(Text("Transfer"))
+                } else if let category = transaction.category {
+                    CategoryImageView(systemImage: category.systemImage, color: category.color)
+                    title(Text(category.name))
+                } else {
+                    CategoryImageView(systemImage: "questionmark", color: .gray)
+                    title(Text("Uncategorized"))
                 }
                 Spacer()
                 Text(transaction.amount, format: .currency(code: currency))
@@ -48,6 +35,18 @@ struct TransactionCardView: View {
                 Text(transaction.date .formatted(date: .omitted, time: .shortened))
             }
         }
+    }
+
+    private func title(_ text: Text) -> some View {
+        VStack(alignment: .leading) {
+            text
+            if transaction.note != "" {
+                Text(transaction.note)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.horizontal, 2)
     }
 }
 
