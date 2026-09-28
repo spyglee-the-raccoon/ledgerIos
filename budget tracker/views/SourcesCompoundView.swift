@@ -15,10 +15,10 @@ struct SourcesCompoundView: View {
     
     private func getAmount(_ source: Source) -> Decimal {
         let initValue = source.initValue
-        let allIncomes = transactions.filter() { transaction in transaction.kind == .income && transaction.destination == source}.reduce(0) { $0 + $1.amount }
-        let allExpenses = transactions.filter() { transaction in transaction.kind == .expense && transaction.source == source}.reduce(0) { $0 + $1.amount }
+        let incoming = transactions.filter() { transaction in transaction.kind != .expense && transaction.destination == source }.reduce(0) { $0 + $1.amount }
+        let outgoing = transactions.filter() { transaction in transaction.kind != .income && transaction.source == source }.reduce(0) { $0 + $1.amount }
         
-        return initValue + allIncomes - allExpenses
+        return initValue + incoming - outgoing
     }
     
     private func onSource(_ source: Source) {
