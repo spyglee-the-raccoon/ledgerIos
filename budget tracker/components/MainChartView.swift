@@ -30,7 +30,7 @@ struct MainChartView: View {
     @Query private var categories: [Category]
     
     @State private var rawSelection: Double?
-    @State private var selected: CategorySum?
+    @State private var selectedID: SliceID?
 
     private let innerRadiusRatio: CGFloat = 0.618
 
@@ -74,9 +74,9 @@ struct MainChartView: View {
         return spendCategories
     }
 
-    private func category(at value: Double) -> CategorySum? {
+    private func slice(at value: Double, in slices: [CategorySum]) -> CategorySum? {
         var cumulative: Double = 0
-        for sum in expensesByCategories {
+        for sum in slices {
             cumulative += NSDecimalNumber(decimal: sum.amount).doubleValue
             if value <= cumulative {
                 return sum
@@ -86,7 +86,10 @@ struct MainChartView: View {
     }
 
     var body: some View {
-        Chart(expensesByCategories, id: \.id) { expense in
+        let slices = expensesByCategories
+        let selected = slices.first { $0.id == selectedID }
+
+        Chart(slices, id: \.id) { expense in
             SectorMark(
                 angle: .value(expense.name, expense.amount),
                 innerRadius: .ratio(innerRadiusRatio),
@@ -101,14 +104,36 @@ struct MainChartView: View {
         .chartAngleSelection(value: $rawSelection)
         .onChange(of: rawSelection) { _, newValue in
             guard let newValue else { return }
-            let hit = category(at: newValue)
-            selected = (hit?.id == selected?.id) ? nil : hit
+            let hitID = slice(at: newValue, in: expensesByCategories)?.id
+            selectedID = (hitID == selectedID) ? nil : hitID
         }
         .chartBackground { chartProxy in
             GeometryReader { geometry in
                 if let plotFrame = chartProxy.plotFrame {
                     let frame = geometry[plotFrame]
-                    if selected?.name == nil {
+                    if let selected {
+                        let innerDiameter = min(frame.width, frame.height) * innerRadiusRatio
+                        ZStack {
+                            Image(systemName: selected.systemImage)
+                                .resizable()
+                                .scaledToFit()
+                                .padding(innerDiameter * 0.2)
+                                .foregroundStyle(selected.color.color.opacity(0.2))
+                                .frame(width: innerDiameter, height: innerDiameter)
+                                .background(selected.color.color.opacity(0.1))
+                                .clipShape(.circle)
+                            VStack {
+                                Text(selected.name)
+                                    .font(.title2.bold())
+                                    .foregroundColor(selected.color.color)
+                                
+                                Text(selected.amount, format: .currency(code: currency))
+                                    .font(.title.bold())
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                        .position(x: frame.midX, y: frame.midY)
+                    } else {
                         VStack {
                             Text("This month balance".uppercased())
                                 .font(.footnote)
@@ -117,28 +142,6 @@ struct MainChartView: View {
                                 .font(.title.bold())
                                 .foregroundColor(.primary)
                         }.position(x: frame.midX, y: frame.midY)
-                    } else {
-                        let innerDiameter = min(frame.width, frame.height) * innerRadiusRatio
-                        ZStack {
-                            Image(systemName: selected!.systemImage)
-                                .resizable()
-                                .scaledToFit()
-                                .padding(innerDiameter * 0.2)
-                                .foregroundStyle(selected!.color.color.opacity(0.2))
-                                .frame(width: innerDiameter, height: innerDiameter)
-                                .background(selected!.color.color.opacity(0.1))
-                                .clipShape(.circle)
-                            VStack {
-                                Text(selected!.name)
-                                    .font(.title2.bold())
-                                    .foregroundColor(selected?.color.color)
-                                
-                                Text(selected!.amount, format: .currency(code: currency))
-                                    .font(.title.bold())
-                                    .foregroundColor(.primary)
-                            }
-                        }
-                        .position(x: frame.midX, y: frame.midY)
                     }
                 }
             }
