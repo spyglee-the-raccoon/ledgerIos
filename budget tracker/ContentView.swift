@@ -11,10 +11,10 @@ struct ContentView: View {
     @State private var isLoggedIn: Bool = false
     
     var body: some View {
-        NavigationStack {
-            if isLoggedIn {
-                MainView()
-            } else {
+        if isLoggedIn {
+            MainView()
+        } else {
+            NavigationStack {
                 LogInView(onLoggedIn: { isLoggedIn = true })
             }
         }

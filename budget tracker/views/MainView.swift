@@ -105,7 +105,7 @@ struct MainView: View {
             }
             .sheet(item: $activeSheet) { sheet in
                 switch sheet {
-                case .add: NavigationView { AddTransactionView().navigationTitle("Add transaction") }
+                case .add: NavigationStack { AddTransactionView().navigationTitle("Add transaction") }
                 case .expenses: ExpensesView()
                 case .incomes: IncomesView()
                 }

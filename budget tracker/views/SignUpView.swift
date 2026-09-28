@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SignUpView: View {
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     
     var isDark: Bool { colorScheme == .dark }
@@ -28,7 +28,7 @@ struct SignUpView: View {
             BackgroundView()
             VStack {
                 HStack {
-                    Button(action: { self.presentationMode.wrappedValue.dismiss() }) {
+                    Button(action: { dismiss() }) {
                         Text("log in")
                             .foregroundStyle((isDark ? Color.black : Color.white).opacity(0.8))
                     }

@@ -43,7 +43,7 @@ struct ExpensesView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(sections, id: \.day) { section in
                     Section {
