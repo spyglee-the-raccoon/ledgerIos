@@ -15,8 +15,10 @@ enum MainViewActiveSheet: Identifiable {
 
 struct MainView: View {
     @Environment(\.colorScheme) var colorScheme: ColorScheme
+    @Environment(\.scenePhase) private var scenePhase
     @State private var activeSheet: MainViewActiveSheet?
     @State private var userName = "John"
+    @State private var currentMonth = DateInterval.month(containing: .now)
     
     @Query private var expenses: [Transaction]
     @Query private var incomes: [Transaction]
@@ -72,7 +74,7 @@ struct MainView: View {
                         .buttonStyle(.glass)
                 }.padding().background(Color.gray.opacity(0.2))
                 Spacer()
-                MainChartView()
+                MainChartView(month: currentMonth)
                 Spacer()
                 Button(action: onAddTransaction) {
                     Text("Add Transaction").padding(10)
@@ -94,9 +96,9 @@ struct MainView: View {
                     
                     HStack {
                         Spacer()
-                        SummaryButtonView(action: onToggleExpensesSheet, categoryKind: .expense)
+                        SummaryButtonView(action: onToggleExpensesSheet, categoryKind: .expense, month: currentMonth)
                         Spacer()
-                        SummaryButtonView(action: onToggleIncomesSheet, categoryKind: .income)
+                        SummaryButtonView(action: onToggleIncomesSheet, categoryKind: .income, month: currentMonth)
                         Spacer()
                     }
                 }.padding(.vertical).background(Color.gray.opacity(0.3))
@@ -109,6 +111,19 @@ struct MainView: View {
                 }
             }
         }
+        .task {
+            for await _ in NotificationCenter.default.notifications(named: .NSCalendarDayChanged) {
+                refreshCurrentMonth()
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active { refreshCurrentMonth() }
+        }
+    }
+
+    private func refreshCurrentMonth() {
+        let month = DateInterval.month(containing: .now)
+        if month != currentMonth { currentMonth = month }
     }
 }
 

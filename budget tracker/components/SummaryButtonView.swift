@@ -10,9 +10,11 @@ import SwiftData
 
 var currency: String { Locale.current.currency?.identifier ?? "EUR" }
 
-var today = Date.now
-
-var currentMonth = Calendar.current.dateComponents([.month], from: today)
+extension DateInterval {
+    static func month(containing date: Date = .now, calendar: Calendar = .current) -> DateInterval {
+        calendar.dateInterval(of: .month, for: date) ?? DateInterval(start: date, duration: 0)
+    }
+}
 
 struct SummaryButtonView: View {
     var action: () -> Void
@@ -20,21 +22,22 @@ struct SummaryButtonView: View {
     
     @Query private var transactions: [Transaction]
 
-    init(action: @escaping () -> Void, categoryKind: CategoryKind) {
+    init(action: @escaping () -> Void, categoryKind: CategoryKind, month: DateInterval = .month(containing: .now)) {
         self.action = action
         self.categoryKind = categoryKind
 
         let kind: TransactionKind = categoryKind == .income ? .income : .expense
-        _transactions = Query(filter: #Predicate<Transaction> { $0.kind == kind })
+        let start = month.start
+        let end = month.end
+        _transactions = Query(filter: #Predicate<Transaction> {
+            $0.kind == kind && $0.date >= start && $0.date < end
+        })
     }
 
     private var isIncome: Bool { categoryKind == .income}
 
     private var total: Decimal {
-        let currentMonthTransactions: [Transaction] = transactions.filter { transaction in
-            Calendar.current.dateComponents([.month], from: transaction.date) == currentMonth
-        }
-        return currentMonthTransactions.reduce(0) { $0 + $1.amount }
+        transactions.reduce(0) { $0 + $1.amount }
     }
     
     var body: some View {

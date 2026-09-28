@@ -26,21 +26,23 @@ struct MainChartView: View {
 
     private let innerRadiusRatio: CGFloat = 0.618
 
-    init() {
+    init(month: DateInterval = .month(containing: .now)) {
         let expense = TransactionKind.expense
         let income = TransactionKind.income
+        let start = month.start
+        let end = month.end
 
-        _expenses = Query(filter: #Predicate<Transaction> { $0.kind == expense })
-        _incomes = Query(filter: #Predicate<Transaction> { $0.kind == income })
+        _expenses = Query(filter: #Predicate<Transaction> {
+            $0.kind == expense && $0.date >= start && $0.date < end
+        })
+        _incomes = Query(filter: #Predicate<Transaction> {
+            $0.kind == income && $0.date >= start && $0.date < end
+        })
     }
     
     private var currentMonthBalance: Decimal {
-        let currentMonthIncomes: Decimal = incomes.filter { transaction in
-            Calendar.current.dateComponents([.month], from: transaction.date) == currentMonth
-        }.reduce(0) { $0 + $1.amount }
-        let currentMonthExpenses: Decimal = expenses.filter { transaction in
-            Calendar.current.dateComponents([.month], from: transaction.date) == currentMonth
-        }.reduce(0) { $0 + $1.amount }
+        let currentMonthIncomes: Decimal = incomes.reduce(0) { $0 + $1.amount }
+        let currentMonthExpenses: Decimal = expenses.reduce(0) { $0 + $1.amount }
         
         return currentMonthIncomes - currentMonthExpenses
     }
@@ -49,10 +51,7 @@ struct MainChartView: View {
         var spendCategories = categories.map { category in
             CategorySum(name: category.name, amount: 0, color: category.color, systemImage: category.systemImage)
         }
-        let expensesOfCurrentMonth: [Transaction] = expenses.filter { transaction in
-            Calendar.current.dateComponents([.month], from: transaction.date) == currentMonth
-        }
-        for expense in expensesOfCurrentMonth {
+        for expense in expenses {
             guard let category = expense.category,
                   let index = categories.firstIndex(where: { $0.persistentModelID == category.persistentModelID })
             else { continue }
