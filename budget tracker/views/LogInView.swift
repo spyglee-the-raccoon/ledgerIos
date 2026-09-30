@@ -43,7 +43,7 @@ struct LogInView: View {
                         .padding(.vertical)
                         .foregroundStyle(Color.primary)
                     Button(action: onLogIn) {
-                        Text("log in")
+                        Text("log_in")
                             .foregroundStyle(Color.gray)
                             .padding(.horizontal)
                             .opacity(0.8)
@@ -53,7 +53,7 @@ struct LogInView: View {
                 .offset(y: didAppear ? 0 : 10)
                 Spacer()
                 NavigationLink(destination: SignUpView()) {
-                    Text("sign up")
+                    Text("sign_up")
                         .foregroundStyle(isDark ? Color.black.opacity(0.8) : Color.white.opacity(0.8))
                         .padding(.horizontal)
                 }

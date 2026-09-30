@@ -49,7 +49,7 @@ struct IncomesView: View {
                     }
                 }
             }
-            .navigationTitle("Incomes")
+            .navigationTitle("incomes")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

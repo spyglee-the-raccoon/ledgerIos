@@ -50,7 +50,7 @@ struct SummaryButtonView: View {
                     .background(isIncome ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
                     .clipShape(.circle)
                 VStack(alignment: .leading) {
-                    Text(categoryKind.rawValue)
+                    Text(isIncome ? "income" : "expense")
                         .font(.callout)
                         .foregroundStyle(Color.secondary)
                     Text(total, format: .currency(code: currency))

@@ -53,7 +53,7 @@ struct CategoriesView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Expense categories") {
+                Section("expense_categories") {
                     ForEach(expenseCategories) { category in
                         CategoryRowView(category: category) {
                             presentedSheet = .edit(category)
@@ -61,7 +61,7 @@ struct CategoriesView: View {
                     }
                     .onDelete { deleteCategory($0, from: expenseCategories) }
                 }
-                Section("Income categories") {
+                Section("income_categories") {
                     ForEach(incomeCategories) { category in
                         CategoryRowView(category: category) {
                             presentedSheet = .edit(category)
@@ -70,10 +70,10 @@ struct CategoriesView: View {
                     .onDelete { deleteCategory($0, from: incomeCategories) }
                 }
             }
-            .navigationTitle("Categories")
+            .navigationTitle("categories")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                Button("Add category", systemImage: "plus") {
+                Button("add_category", systemImage: "plus") {
                     presentedSheet = .add
                 }
             }

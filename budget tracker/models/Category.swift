@@ -47,7 +47,8 @@ final class Category {
     var systemImage: String = "carrot"
     var color: CategoryColor = CategoryColor.primary
     var categoryKind: CategoryKind = CategoryKind.expense
-    @Relationship(deleteRule: .nullify, inverse: \Transaction.category) var transactions: [Transaction] = []
+    @Relationship(deleteRule: .nullify, inverse: \Transaction.category) var transactions: [Transaction]? = []
+    @Relationship(deleteRule: .cascade, inverse: \MerchantCategory.category) var merchantMappings: [MerchantCategory]? = []
 
     init(name: String = "", systemImage: String = "carrot", color: CategoryColor = .primary, categoryKind: CategoryKind = .expense, transactions: [Transaction] = []) {
         self.name = name

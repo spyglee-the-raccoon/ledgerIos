@@ -28,8 +28,8 @@ struct SettingsView: View {
     var body: some View {
         VStack {
             Section {
-                Button("Categories", action: openCategories)
-                Button("Sources", action: openSources)
+                Button("categories", action: openCategories)
+                Button("sources", action: openSources)
             }
         }
         .sheet(item: $activeSheet) { sheet in

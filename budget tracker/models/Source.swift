@@ -43,10 +43,13 @@ final class Source {
     var createdAt: Date = Date.now
     
     @Relationship(deleteRule: .nullify, inverse: \Transaction.source)
-    var outgoingTransactions: [Transaction] = []
-    
+    var outgoingTransactions: [Transaction]? = []
+
     @Relationship(deleteRule: .nullify, inverse: \Transaction.destination)
-    var incomingTransactions: [Transaction] = []
+    var incomingTransactions: [Transaction]? = []
+
+    @Relationship(deleteRule: .nullify, inverse: \MerchantCategory.source)
+    var merchantMappings: [MerchantCategory]? = []
     
     init(name: String = "", systemImage: String = "plus", initValue: Decimal = 0.0,  color: CategoryColor = .blue ) {
         self.name = name

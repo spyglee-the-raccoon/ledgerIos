@@ -47,12 +47,12 @@ struct TransactionDraft {
 
 @Model
 final class Transaction {
-    var amount: Decimal
-    var kind: TransactionKind
+    var amount: Decimal = 0
+    var kind: TransactionKind = TransactionKind.expense
     var source: Source?
     var destination: Source?
-    var note: String
-    var date: Date
+    var note: String = ""
+    var date: Date = Date.now
     var category: Category?
     
     init(amount: Decimal, kind: TransactionKind, source: Source? = nil, destination: Source? = nil, note: String, date: Date, category: Category? = nil) {

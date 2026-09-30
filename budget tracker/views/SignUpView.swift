@@ -29,7 +29,7 @@ struct SignUpView: View {
             VStack {
                 HStack {
                     Button(action: { dismiss() }) {
-                        Text("log in")
+                        Text("log_in")
                             .foregroundStyle((isDark ? Color.black : Color.white).opacity(0.8))
                     }
                     Spacer()
@@ -38,7 +38,6 @@ struct SignUpView: View {
                 VStack {
                     TextField("name", text: $name)
                         .modifier(InputFieldModifier())
-                        .keyboardType(.default)
                         .foregroundStyle(Color.primary)
                         .tint(.gray)
                         .padding(.bottom, 10)
@@ -49,16 +48,14 @@ struct SignUpView: View {
                         .foregroundStyle(Color.primary)
                     SecureField("password", text: $password)
                         .modifier(InputFieldModifier())
-                        .keyboardType(.default)
                         .padding(.bottom, 10)
                         .foregroundStyle(Color.primary)
-                    SecureField("confirm password", text: $confirmPassword)
+                    SecureField("confirm_password", text: $confirmPassword)
                         .modifier(InputFieldModifier())
-                        .keyboardType(.default)
                         .padding(.bottom, 10)
                         .foregroundStyle(Color.primary)
                     Button(action: onSignUp) {
-                        Text("sign up")
+                        Text("sign_up")
                             .foregroundStyle(Color.gray)
                             .padding(.horizontal)
                             .opacity(0.8)

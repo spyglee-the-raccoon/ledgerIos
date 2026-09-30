@@ -8,11 +8,11 @@
 import SwiftUI
 import SwiftData
 
-func headerTitle(for day: Date) -> String {
+func headerTitle(for day: Date) -> LocalizedStringResource {
     let calendar = Calendar.current
-    if calendar.isDateInToday(day) { return "Today" }
-    if calendar.isDateInYesterday(day) { return "Yesterday" }
-    return day.formatted(.dateTime.weekday(.wide).day().month(.wide).year())
+    if calendar.isDateInToday(day) { return "today" }
+    if calendar.isDateInYesterday(day) { return "yesterday" }
+    return "\(day, format: .dateTime.weekday(.wide).day().month(.wide).year())"
 }
 
 struct ExpensesView: View {
@@ -56,7 +56,7 @@ struct ExpensesView: View {
                     }
                 }
             }
-            .navigationTitle("Expenses")
+            .navigationTitle("expenses")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

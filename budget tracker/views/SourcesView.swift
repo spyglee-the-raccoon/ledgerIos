@@ -60,10 +60,10 @@ struct SourcesView: View {
                 }
                 .onDelete(perform: deleteSource)
             }
-            .navigationTitle("Sources")
+            .navigationTitle("sources")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                Button("Add Source", systemImage: "plus") {
+                Button("add_source", systemImage: "plus") {
                     presentedSheet = .add
                 }
             }

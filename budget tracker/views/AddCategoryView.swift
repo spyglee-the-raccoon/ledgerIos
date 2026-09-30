@@ -26,11 +26,11 @@ struct AddCategoryView: View {
     }
 
     private var navigationTitleKey: LocalizedStringKey {
-        isEditing ? "Edit Category" : "New Category"
+        isEditing ? "edit_category" : "new_category"
     }
 
     private var confirmationTitleKey: LocalizedStringKey {
-        isEditing ? "Save" : "Add"
+        isEditing ? "save" : "add"
     }
 
     private var filteredSymbols: [String] {
@@ -46,33 +46,42 @@ struct AddCategoryView: View {
     func onSelectIcon (_ newIcon: String) {
         draft.systemImage = newIcon
     }
+    
+    func getKindName(_ kind: CategoryKind) -> LocalizedStringResource {
+        switch(kind) {
+        case .expense:
+            return "expense"
+        case .income:
+            return "income"
+        }
+    }
 
     var body: some View {
         NavigationStack {
             Form {
-                Section("Kind") {
-                    Picker("Kind", selection: $draft.categoryKind) {
+                Section("kind") {
+                    Picker("kind", selection: $draft.categoryKind) {
                         ForEach(CategoryKind.allCases) { kind in
-                            Text(kind.rawValue.capitalized)
+                            Text(getKindName(kind))
                                 .tag(kind)
                         }
                     }
                     .pickerStyle(.segmented)
                 }
-                Section("Name") {
+                Section("name") {
                     HStack(spacing: 12) {
                         Image(systemName: draft.systemImage)
                             .font(.title3)
                             .foregroundStyle(draft.color.color)
                             .frame(width: 28)
-                        TextField("Category name", text: $draft.name)
+                        TextField("category_name", text: $draft.name)
                             .textInputAutocapitalization(.words)
                             .autocorrectionDisabled()
                             .submitLabel(.done)
                     }
                 }
                 
-                Section("Color") {
+                Section("color") {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 48), spacing: 12)], spacing: 12) {
                         ForEach(CategoryColor.allCases) { color in
                             ColorSwatchView(onSelectColor: onSelectColor, color: color, selectedColor: draft.color)
@@ -81,8 +90,8 @@ struct AddCategoryView: View {
                     .padding(.vertical, 8)
                 }
 
-                Section("Icon") {
-                    TextField("Search symbols", text: $symbolSearch)
+                Section("icon") {
+                    TextField("search_symbols", text: $symbolSearch)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
 

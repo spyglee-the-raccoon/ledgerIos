@@ -43,16 +43,18 @@ struct SourcesCompoundView: View {
                         Text(getAmount(source), format: .currency(code: currency))
                     }
                 }
+                    .buttonStyle(.plain)
             }
             if hasUnassignedTransactions {
                 Button(action: { isPresentingUnassigned = true }) {
                     HStack {
                         CategoryImageView(systemImage: "questionmark", color: .gray)
-                        Text("No source")
+                        Text("no_source")
                         Spacer()
                         Text(getAmount(nil), format: .currency(code: currency))
                     }
                 }
+                    .buttonStyle(.plain)
             }
         }
         .sheet(item: $presentedSource) { source in

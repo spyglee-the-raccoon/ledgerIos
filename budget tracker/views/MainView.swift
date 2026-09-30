@@ -65,7 +65,7 @@ struct MainView: View {
                         Text(Date.now, format: .dateTime.weekday(.wide).day().month(.wide))
                             .font(.callout)
                             .foregroundStyle(Color.secondary)
-                        Text("Hello, " + userName)
+                        Text("hello \(userName)")
                     }
                     Spacer()
                     NavigationLink(destination: SettingsView()) {
@@ -77,14 +77,14 @@ struct MainView: View {
                 MainChartView(month: currentMonth)
                 Spacer()
                 Button(action: onAddTransaction) {
-                    Text("Add Transaction").padding(10)
-                }.buttonStyle(.glassProminent)
+                    Text("add_transaction").padding(10)
+                }.buttonStyle(.glass)
                 VStack {
-                    Text("total balance")
+                    Text("total_balance")
                         .textCase(.uppercase)
                         .font(.callout)
                         .foregroundStyle(Color.secondary)
-                    NavigationLink(destination: SourcesCompoundView().navigationTitle("Sources")) {
+                    NavigationLink(destination: SourcesCompoundView().navigationTitle("sources")) {
                         Text(
                             balance,
                             format: .currency(code: currency)
@@ -105,7 +105,7 @@ struct MainView: View {
             }
             .sheet(item: $activeSheet) { sheet in
                 switch sheet {
-                case .add: NavigationStack { AddTransactionView().navigationTitle("Add transaction") }
+                case .add: NavigationStack { AddTransactionView().navigationTitle("add_transaction") }
                 case .expenses: ExpensesView()
                 case .incomes: IncomesView()
                 }
@@ -140,20 +140,23 @@ func makeMainViewPreviewContainer() -> ModelContainer {
         fatalError("Failed to create preview container: \(error)")
     }
     let incomeCategory = Category(name: "Salary", systemImage: "note", color: .green, categoryKind: CategoryKind.income )
+    let incomeCategory2 = Category(name: "Deposit", systemImage: "dollarsign.circle", color: .orange, categoryKind: CategoryKind.income )
     let expenseCategory = Category(name: "Bill", systemImage: "tag", color: .yellow, categoryKind: CategoryKind.expense )
     let expenseCategory2 = Category(name: "Food", systemImage: "basket", color: .green, categoryKind: CategoryKind.expense )
     let expenseCategory3 = Category(name: "Eating Out", systemImage: "fork.knife", color: .orange, categoryKind: CategoryKind.expense )
     let source = Source(name: "Credit Card", systemImage: "tag", initValue: 50, color: CategoryColor.blue)
-    let expense = Transaction(amount: 20, kind: TransactionKind.expense, note: "Some ExpenseNote", date: Date.now, category: expenseCategory)
-    let expense2 = Transaction(amount: 50, kind: TransactionKind.expense, note: "", date: Date.now, category: expenseCategory2)
-    let expense3 = Transaction(amount: 100.20, kind: TransactionKind.expense, note: "Date", date: Date.now, category: expenseCategory3)
-    let income = Transaction(amount: 100, kind: TransactionKind.income, note: "Some Income Note", date: Date.now, category: incomeCategory)
+    let expense = Transaction(amount: 20, kind: TransactionKind.expense, source: source, note: "Some ExpenseNote", date: Date.now, category: expenseCategory)
+    let expense2 = Transaction(amount: 50, kind: TransactionKind.expense, source: source, note: "", date: Date.now, category: expenseCategory2)
+    let expense3 = Transaction(amount: 100.20, kind: TransactionKind.expense, source: source, note: "Date", date: Date.now, category: expenseCategory3)
+    let income = Transaction(amount: 100, kind: TransactionKind.income, destination: source, note: "Some Income Note, what if it gets very long long long long", date: Date.now, category: incomeCategory)
 
     container.mainContext.insert(source)
     container.mainContext.insert(expense)
     container.mainContext.insert(expense2)
     container.mainContext.insert(expense3)
     container.mainContext.insert(income)
+    container.mainContext.insert(incomeCategory)
+    container.mainContext.insert(incomeCategory2)
     return container
 }
 

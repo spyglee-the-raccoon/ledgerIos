@@ -8,11 +8,10 @@
 import SwiftUI
 import SwiftData
 import Charts
+import AudioToolbox
 
-/// Identifies a chart slice independently of its display name.
 private enum SliceID: Hashable {
     case category(PersistentIdentifier)
-    /// Expenses whose category was deleted.
     case uncategorized
 }
 
@@ -29,7 +28,6 @@ struct MainChartView: View {
     @Query private var incomes: [Transaction]
     @Query private var categories: [Category]
     
-    @State private var rawSelection: Double?
     @State private var selectedID: SliceID?
 
     private let innerRadiusRatio: CGFloat = 0.618
@@ -59,7 +57,7 @@ struct MainChartView: View {
         var spendCategories = categories.map { category in
             CategorySum(id: .category(category.persistentModelID), name: category.name, amount: 0, color: category.color, systemImage: category.systemImage)
         }
-        var uncategorized = CategorySum(id: .uncategorized, name: String(localized: "Uncategorized"), amount: 0, color: .gray, systemImage: "questionmark")
+        var uncategorized = CategorySum(id: .uncategorized, name: String(localized: "uncategorized"), amount: 0, color: .gray, systemImage: "questionmark")
         for expense in expenses {
             if let category = expense.category,
                let index = categories.firstIndex(where: { $0.persistentModelID == category.persistentModelID }) {
@@ -101,12 +99,41 @@ struct MainChartView: View {
                 .opacity(selected == nil || selected?.id == expense.id ? 1 : 0.35)
         }
         .chartLegend(.hidden)
-        .chartAngleSelection(value: $rawSelection)
-        .onChange(of: rawSelection) { _, newValue in
-            guard let newValue else { return }
-            let hitID = slice(at: newValue, in: expensesByCategories)?.id
-            selectedID = (hitID == selectedID) ? nil : hitID
+        .chartOverlay { proxy in
+            GeometryReader { geo in
+                Rectangle().fill(.clear).contentShape(.rect)
+                    .gesture(
+                        SpatialTapGesture().onEnded { tap in
+                            guard let plotFrame = proxy.plotFrame else { return }
+                            let frame = geo[plotFrame]
+                            let dx = tap.location.x - frame.midX
+                            let dy = tap.location.y - frame.midY
+                            let radius = min(frame.width, frame.height) / 2
+                            let distance = hypot(dx, dy)
+
+                            guard distance >= radius * innerRadiusRatio,
+                                  distance <= radius else {
+                                return selectedID = nil
+                            }
+
+                            var angle = atan2(dx, -dy)
+                            if angle < 0 { angle += 2 * .pi }
+
+                            let total = slices.reduce(0.0) {
+                                $0 + NSDecimalNumber(decimal: $1.amount).doubleValue
+                            }
+                            guard total > 0 else { return }
+                            let value = angle / (2 * .pi) * total
+                            let hitID = slice(at: value, in: slices)?.id
+                            selectedID = (hitID == selectedID) ? nil : hitID
+                        }
+                    )
+            }
         }
+        .onChange(of: selectedID) {
+            AudioServicesPlaySystemSound(1104)
+        }
+        .sensoryFeedback(.selection, trigger: selectedID)
         .chartBackground { chartProxy in
             GeometryReader { geometry in
                 if let plotFrame = chartProxy.plotFrame {
@@ -135,7 +162,8 @@ struct MainChartView: View {
                         .position(x: frame.midX, y: frame.midY)
                     } else {
                         VStack {
-                            Text("This month balance".uppercased())
+                            Text("this_month_balance")
+                                .textCase(.uppercase)
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
                             Text(currentMonthBalance, format: .currency(code: currency))

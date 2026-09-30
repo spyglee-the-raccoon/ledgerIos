@@ -31,9 +31,9 @@ struct TransactionsView: View {
 
     private var title: String {
         if let source {
-            String(localized: "Transactions for \(source.name)")
+            String(localized: "transactions_for \(source.name)")
         } else {
-            String(localized: "Transactions without source")
+            String(localized: "transactions_without_source")
         }
     }
     
@@ -61,6 +61,7 @@ struct TransactionsView: View {
                 }
             }
             .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }

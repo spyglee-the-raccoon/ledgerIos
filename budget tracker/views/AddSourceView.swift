@@ -25,11 +25,11 @@ struct AddSourceView: View {
     }
     
     private var navigationTitleKey: LocalizedStringKey {
-        isEditing ? "Edit Source" : "Add Source"
+        isEditing ? "edit_source" : "add_source"
     }
     
     private var confirmationTitleKey: LocalizedStringKey {
-        isEditing ? "Save" : "Add"
+        isEditing ? "save" : "add"
     }
     
     private var filteredSymbols: [String] {
@@ -49,29 +49,29 @@ struct AddSourceView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Name") {
+                Section("name") {
                     HStack(spacing: 12) {
                         Image(systemName: draft.systemImage)
                             .font(.title3)
                             .foregroundStyle(draft.color.color)
                             .frame(width: 28)
-                        TextField("Source name", text: $draft.name)
+                        TextField("source_name", text: $draft.name)
                             .textInputAutocapitalization(.words)
                             .autocorrectionDisabled()
                             .submitLabel(.done)
                     }
                 }
                 
-                Section("Initial value") {
+                Section("initial_value") {
                     HStack(spacing: 12) {
-                        TextField("Initial value", value: $draft.initValue, format: .number)
+                        TextField("initial_value", value: $draft.initValue, format: .number)
                             .keyboardType(.decimalPad)
                             .autocorrectionDisabled()
                             .submitLabel(.done)
                     }
                 }
                 
-                Section("Color") {
+                Section("color") {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 48), spacing: 12)], spacing: 12) {
                         ForEach(CategoryColor.allCases) { swatchColor in
                             ColorSwatchView(onSelectColor: onSelectColor, color: swatchColor, selectedColor: draft.color)
@@ -80,8 +80,8 @@ struct AddSourceView: View {
                     .padding(.vertical, 8)
                 }
 
-                Section("Icon") {
-                    TextField("Search symbols", text: $symbolSearch)
+                Section("icon") {
+                    TextField("search_symbols", text: $symbolSearch)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
 
