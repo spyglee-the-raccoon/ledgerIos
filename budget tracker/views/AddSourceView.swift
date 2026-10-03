@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AddSourceView: View {
     @Environment(\.dismiss) private var dismiss
@@ -13,6 +14,9 @@ struct AddSourceView: View {
     let onSave: (SourceDraft) -> Void
     @State private var draft: SourceDraft
     @State private var symbolSearch = ""
+    @State private var showSourceExistsAlert = false
+
+    @Query var sources: [Source]
     
     init(source: Source? = nil, onSave: @escaping (SourceDraft) -> Void) {
         self.source = source
@@ -36,6 +40,19 @@ struct AddSourceView: View {
         let query = symbolSearch.trimmingCharacters(in: .whitespaces).lowercased()
         guard !query.isEmpty else { return icons }
         return icons.filter { $0.contains(query) }
+    }
+    
+    private func validateAndSave() {
+        let existingSource = sources.firstIndex(where: {
+            $0.persistentModelID != source?.persistentModelID
+                && $0.name == draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        })
+        if existingSource != nil {
+            showSourceExistsAlert = true
+        } else {
+            onSave(draft)
+            dismiss()
+        }
     }
     
     func onSelectColor (_ newColor: CategoryColor) {
@@ -109,13 +126,16 @@ struct AddSourceView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
-                        onSave(draft)
-                        dismiss()
+                        validateAndSave()
                     } label: {
                         Image(systemName: "arrow.down.circle")
                     }
                     .disabled(draft.trimmedName.isEmpty)
                 }
+            }
+            .alert("error", isPresented: $showSourceExistsAlert) {
+            } message: {
+                Text("source_exists")
             }
         }
     }

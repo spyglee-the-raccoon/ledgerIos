@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AddCategoryView: View {
     @Environment(\.dismiss) private var dismiss
@@ -14,6 +15,9 @@ struct AddCategoryView: View {
     
     @State private var draft: CategoryDraft
     @State private var symbolSearch = ""
+    @State private var showCategoryExistsAlert = false
+
+    @Query var categories: [Category]
 
     init(category: Category? = nil, onSave: @escaping (CategoryDraft) -> Void) {
         self.category = category
@@ -37,6 +41,19 @@ struct AddCategoryView: View {
         let query = symbolSearch.trimmingCharacters(in: .whitespaces).lowercased()
         guard !query.isEmpty else { return icons }
         return icons.filter { $0.contains(query) }
+    }
+    
+    private func validateAndSave() {
+        let expistingCategory = categories.firstIndex(where: {
+            $0.persistentModelID != category?.persistentModelID
+                && $0.name == draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        })
+        if expistingCategory != nil {
+            showCategoryExistsAlert = true
+        } else {
+            onSave(draft)
+            dismiss()
+        }
     }
     
     func onSelectColor (_ newColor: CategoryColor) {
@@ -119,13 +136,16 @@ struct AddCategoryView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
-                        onSave(draft)
-                        dismiss()
+                        validateAndSave()
                     } label: {
                         Image(systemName: "arrow.down.circle")
                     }
                     .disabled(draft.trimmedName.isEmpty)
                 }
+            }
+            .alert("error", isPresented: $showCategoryExistsAlert) {
+            } message: {
+                Text("category_exists")
             }
         }
     }

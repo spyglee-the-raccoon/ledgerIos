@@ -9,10 +9,16 @@ import SwiftUI
 import SwiftData
 
 struct SourcesCompoundView: View {
+    @Environment(\.modelContext) var modelContext
     @Query var sources: [Source]
-    @Query var transactions: [Transaction]
+    @Query(sort: \Transaction.date, order: .reverse) var transactions: [Transaction]
+    
     @State private var presentedSource: Source? = nil
     @State private var isPresentingUnassigned = false
+    @State private var isTransactionListPresented: Bool = true
+    @State private var isSourceListPresented: Bool = true
+    @State private var searchTransactions: String = ""
+    
     private var hasUnassignedTransactions: Bool {
         transactions.contains { transaction in
             (transaction.kind != .income && transaction.source == nil) ||
@@ -32,18 +38,64 @@ struct SourcesCompoundView: View {
         self.presentedSource = source
     }
     
+    func onDelete (_ indexSet: IndexSet, from items: [Transaction]) {
+        for index in indexSet {
+            let transaction = items[index]
+            modelContext.delete(transaction)
+        }
+    }
+    
+    private var filteretedTransactions: [Transaction] {
+        let query = searchTransactions.trimmingCharacters(in: .whitespaces)
+        guard !query.isEmpty else { return transactions }
+        return transactions.filter { transaction in
+            transaction.note.localizedStandardContains(query) ||
+            (transaction.category?.name.localizedStandardContains(query) ?? false)
+        }
+    }
+    
+    private var sections: [(day: Date, items: [Transaction])] {
+        let calendar = Calendar.current
+        let grouped = Dictionary(grouping: filteretedTransactions) {
+            calendar.startOfDay(for: $0.date)
+        }
+        return grouped
+            .map { (day: $0.key, items: $0.value.sorted { $0.date > $1.date }) }
+            .sorted { $0.day > $1.day }
+    }
+    
     var body: some View {
         List {
-            ForEach(sources) { source in
-                Button(action: { onSource(source) }) {
-                    HStack {
-                        CategoryImageView(systemImage: source.systemImage, color: source.color)
-                        Text(source.name)
-                        Spacer()
-                        Text(getAmount(source), format: .currency(code: currency))
+            Section("sources", isExpanded: $isSourceListPresented) {
+                ForEach(sources) { source in
+                    Button(action: { onSource(source) }) {
+                        HStack {
+                            CategoryImageView(systemImage: source.systemImage, color: source.color)
+                            Text(source.name)
+                            Spacer()
+                            Text(getAmount(source), format: .currency(code: currency))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            Section("transactions", isExpanded: $isTransactionListPresented) {
+                HStack {
+                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                    TextField("search_transactions", text: $searchTransactions)
+                }
+                ForEach(sections, id: \.day) { section in
+                    Section {
+                        ForEach(section.items) { transaction in
+                            TransactionCardView(transaction: transaction)
+                        }
+                        .onDelete { onDelete($0, from: section.items) }
+                    } header: {
+                        Text(headerTitle(for: section.day))
+                            .foregroundStyle(.secondary)
+                            .font(.default.bold())
                     }
                 }
-                    .buttonStyle(.plain)
             }
             if hasUnassignedTransactions {
                 Button(action: { isPresentingUnassigned = true }) {
@@ -54,9 +106,10 @@ struct SourcesCompoundView: View {
                         Text(getAmount(nil), format: .currency(code: currency))
                     }
                 }
-                    .buttonStyle(.plain)
+                .buttonStyle(.plain)
             }
         }
+        .listStyle(.sidebar)
         .sheet(item: $presentedSource) { source in
             TransactionsView(source: source)
         }

@@ -16,92 +16,24 @@ enum MainViewActiveSheet: Identifiable {
 struct MainView: View {
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.horizontalSizeClass) var sizeClass
+    
     @State private var activeSheet: MainViewActiveSheet?
-    @State private var userName = "John"
     @State private var currentMonth = DateInterval.month(containing: .now)
-    
-    @Query private var expenses: [Transaction]
-    @Query private var incomes: [Transaction]
-    @Query private var sources: [Source]
-    @Query private var categories: [Category]
-
-    init() {
-        let expense = TransactionKind.expense
-        let income = TransactionKind.income
-
-        _expenses = Query(filter: #Predicate<Transaction> { $0.kind == expense })
-        _incomes = Query(filter: #Predicate<Transaction> { $0.kind == income })
-    }
-
-    var balance: Decimal {
-        let initials: Decimal = sources.reduce(0) { $0 + $1.initValue }
-        let incomes: Decimal = incomes.reduce(0) { $0 + $1.amount }
-        let expenses: Decimal = expenses.reduce(0) { $0 + $1.amount }
-        
-        return initials + incomes - expenses
-    }
-    
-    var isDark: Bool {
-        colorScheme == .dark
-    }
-    
-    func onToggleExpensesSheet() {
-        activeSheet = .expenses
-    }
-    
-    func onToggleIncomesSheet() {
-        activeSheet = .incomes
-    }
-    
-    func onAddTransaction() {
-        activeSheet = .add
-    }
     
     var body: some View {
         NavigationStack {
             VStack {
-                HStack() {
-                    VStack(alignment: .leading) {
-                        Text(Date.now, format: .dateTime.weekday(.wide).day().month(.wide))
-                            .font(.callout)
-                            .foregroundStyle(Color.secondary)
-                        Text("hello \(userName)")
-                    }
-                    Spacer()
-                    NavigationLink(destination: SettingsView()) {
-                        Image(systemName: "gear")
-                    }
-                        .buttonStyle(.glass)
-                }.padding().background(Color.gray.opacity(0.2))
-                Spacer()
-                MainChartView(month: currentMonth)
-                Spacer()
-                Button(action: onAddTransaction) {
-                    Text("add_transaction").padding(10)
-                }.buttonStyle(.glass)
-                VStack {
-                    Text("total_balance")
-                        .textCase(.uppercase)
-                        .font(.callout)
-                        .foregroundStyle(Color.secondary)
-                    NavigationLink(destination: SourcesCompoundView().navigationTitle("sources")) {
-                        Text(
-                            balance,
-                            format: .currency(code: currency)
-                        )
-                    }
-                    .font(.largeTitle)
-                    .foregroundStyle(.primary)
-                    .fontWeight(.bold)
-                    
+                HeaderView()
+                if sizeClass == .compact {
+                    MainChartActionView(month: currentMonth, activeSheet: $activeSheet)
+                    ActionView(month: currentMonth, activeSheet: $activeSheet)
+                } else {
                     HStack {
-                        Spacer()
-                        SummaryButtonView(action: onToggleExpensesSheet, categoryKind: .expense, month: currentMonth)
-                        Spacer()
-                        SummaryButtonView(action: onToggleIncomesSheet, categoryKind: .income, month: currentMonth)
-                        Spacer()
+                        MainChartActionView(month: currentMonth, activeSheet: $activeSheet)
+                        ActionView(month: currentMonth, activeSheet: $activeSheet)
                     }
-                }.padding(.vertical).background(Color.gray.opacity(0.3))
+                }
             }
             .sheet(item: $activeSheet) { sheet in
                 switch sheet {
@@ -110,7 +42,8 @@ struct MainView: View {
                 case .incomes: IncomesView()
                 }
             }
-        }
+        }.toolbarVisibility(.visible)
+            .toolbarBackground(.blue)
         .task {
             for await _ in NotificationCenter.default.notifications(named: .NSCalendarDayChanged) {
                 refreshCurrentMonth()
@@ -120,7 +53,7 @@ struct MainView: View {
             if newPhase == .active { refreshCurrentMonth() }
         }
     }
-
+    
     private func refreshCurrentMonth() {
         let month = DateInterval.month(containing: .now)
         if month != currentMonth { currentMonth = month }
@@ -149,7 +82,7 @@ func makeMainViewPreviewContainer() -> ModelContainer {
     let expense2 = Transaction(amount: 50, kind: TransactionKind.expense, source: source, note: "", date: Date.now, category: expenseCategory2)
     let expense3 = Transaction(amount: 100.20, kind: TransactionKind.expense, source: source, note: "Date", date: Date.now, category: expenseCategory3)
     let income = Transaction(amount: 100, kind: TransactionKind.income, destination: source, note: "Some Income Note, what if it gets very long long long long", date: Date.now, category: incomeCategory)
-
+    
     container.mainContext.insert(source)
     container.mainContext.insert(expense)
     container.mainContext.insert(expense2)
