@@ -11,14 +11,16 @@ import SwiftUI
 @main
 struct budget_trackerApp: App {
     let modelContainer: ModelContainer = {
-        let schema = Schema([Category.self, Source.self, Transaction.self, MerchantCategory.self])
+        let schema = Schema([Category.self, Source.self, Transaction.self, MerchantCategory.self, TransactionCollection.self])
         let configuration = ModelConfiguration(
             schema: schema,
             // Switch to .private("iCloud.work.spyglee.budget-tracker") once iCloud is enabled on a paid team
             cloudKitDatabase: .none
         )
         do {
-            return try ModelContainer(for: schema, configurations: configuration)
+            let container = try ModelContainer(for: schema, configurations: configuration)
+            DefaultData.seedIfNeeded(in: container)
+            return container
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }

@@ -77,9 +77,9 @@ struct SavingStatisticView: View {
     }
 
     private func biggest(_ kind: TransactionKind, in month: Date) -> [Transaction] {
-        guard let interval = Calendar.current.dateInterval(of: .month, for: month) else { return [] }
+        let calendar = Calendar.current
         return transactions
-            .filter { $0.kind == kind && interval.contains($0.date) }
+            .filter { $0.kind == kind && calendar.isDate($0.date, equalTo: month, toGranularity: .month) }
             .sorted { $0.amount > $1.amount }
             .prefix(3)
             .map { $0 }

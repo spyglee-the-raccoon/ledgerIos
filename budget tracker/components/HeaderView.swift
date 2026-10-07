@@ -16,6 +16,7 @@ struct HeaderView: View {
             Spacer()
             NavigationLink(destination: SettingsView()) {
                 Image(systemName: "gear")
+                    .padding(.vertical, 5)
             }
             .buttonStyle(.glass)
         }.padding().background(Color.gray.opacity(0.2))

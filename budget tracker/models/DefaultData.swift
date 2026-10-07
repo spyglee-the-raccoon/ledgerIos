@@ -8,14 +8,9 @@
 import Foundation
 import SwiftData
 
-/// Seeds a starter set of categories and sources on first launch so new users
-/// don't open the app to empty lists.
 enum DefaultData {
     static let storageKey = "didSeedDefaultData"
 
-    /// Inserts defaults once. The flag ensures categories the user deletes later
-    /// aren't recreated, and the emptiness check avoids duplicating data for
-    /// existing users who already created their own categories or sources.
     static func seedIfNeeded(in container: ModelContainer) {
         let defaults = UserDefaults.standard
         guard !defaults.bool(forKey: storageKey) else { return }

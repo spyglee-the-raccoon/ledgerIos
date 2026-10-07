@@ -1,5 +1,5 @@
 //
-//  AddGroupView.swift
+//  AddCollectionView.swift
 //  budget tracker
 //
 //  Created by Maksym Bahrov on 06.10.2026..
@@ -8,29 +8,29 @@
 import SwiftUI
 import SwiftData
 
-struct AddGroupView: View {
+struct AddCollectionView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    let group: Group?
-    @State private var draft: groupDraft
+    let collection: TransactionCollection?
+    @State private var draft: CollectionDraft
     @State private var symbolSearch = ""
     @State private var searchTransactions = ""
-    @State private var showGroupExistsAlert = false
+    @State private var showCollectionExistsAlert = false
 
-    @Query var groups: [Group]
+    @Query var collections: [TransactionCollection]
     @Query(sort: \Transaction.date, order: .reverse) var transactions: [Transaction]
 
-    init(group: Group? = nil) {
-        self.group = group
-        self.draft = group.map { groupDraft($0) } ?? groupDraft()
+    init(collection: TransactionCollection? = nil) {
+        self.collection = collection
+        self.draft = collection.map { CollectionDraft($0) } ?? CollectionDraft()
     }
 
     private var isEditing: Bool {
-        group != nil
+        collection != nil
     }
 
     private var navigationTitleKey: LocalizedStringKey {
-        isEditing ? "edit_group" : "add_group"
+        isEditing ? "edit_collection" : "add_collection"
     }
 
     private var filteredSymbols: [String] {
@@ -71,20 +71,20 @@ struct AddGroupView: View {
     }
 
     private func validateAndSave() {
-        let existingGroup = groups.firstIndex(where: {
-            $0.persistentModelID != group?.persistentModelID
+        let existingCollection = collections.firstIndex(where: {
+            $0.persistentModelID != collection?.persistentModelID
                 && $0.name == draft.trimmedName
         })
-        if existingGroup != nil {
-            showGroupExistsAlert = true
+        if existingCollection != nil {
+            showCollectionExistsAlert = true
             return
         }
-        if let group {
-            draft.apply(to: group)
+        if let collection {
+            draft.apply(to: collection)
         } else {
-            let newGroup = Group(name: draft.trimmedName, systemImage: draft.systemImage, color: draft.color, transactions: [])
-            draft.apply(to: newGroup)
-            modelContext.insert(newGroup)
+            let newCollection = TransactionCollection(name: draft.trimmedName, systemImage: draft.systemImage, color: draft.color, transactions: [])
+            draft.apply(to: newCollection)
+            modelContext.insert(newCollection)
         }
         dismiss()
     }
@@ -105,7 +105,7 @@ struct AddGroupView: View {
                         .font(.title3)
                         .foregroundStyle(draft.color.color)
                         .frame(width: 28)
-                    TextField("group_name", text: $draft.name)
+                    TextField("collection_name", text: $draft.name)
                         .textInputAutocapitalization(.words)
                         .autocorrectionDisabled()
                         .submitLabel(.done)
@@ -176,14 +176,14 @@ struct AddGroupView: View {
                 .disabled(draft.trimmedName.isEmpty)
             }
         }
-        .alert("error", isPresented: $showGroupExistsAlert) {
+        .alert("error", isPresented: $showCollectionExistsAlert) {
         } message: {
-            Text("group_exists")
+            Text("collection_exists")
         }
     }
 }
 
-/// A compact transaction row with a checkmark, used to pick transactions for a group.
+/// A compact transaction row with a checkmark, used to pick transactions for a collection.
 private struct SelectableTransactionRow: View {
     let transaction: Transaction
     let isSelected: Bool
@@ -234,7 +234,7 @@ private struct SelectableTransactionRow: View {
 
 #Preview {
     NavigationStack {
-        AddGroupView()
+        AddCollectionView()
     }
     .modelContainer(makeMainViewPreviewContainer())
 }

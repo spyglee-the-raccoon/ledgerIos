@@ -81,6 +81,15 @@ struct AddSourceView: View {
                 
                 Section("initial_value") {
                     HStack(spacing: 12) {
+                        Button {
+                            draft.initValue = -draft.initValue
+                        } label: {
+                            Image(systemName: "plus.forwardslash.minus")
+                                .font(.title3)
+                                .foregroundStyle(draft.initValue < 0 ? .red : .accentColor)
+                                .frame(width: 28)
+                        }
+                        .buttonStyle(.borderless)
                         TextField("initial_value", value: $draft.initValue, format: .number)
                             .keyboardType(.decimalPad)
                             .autocorrectionDisabled()

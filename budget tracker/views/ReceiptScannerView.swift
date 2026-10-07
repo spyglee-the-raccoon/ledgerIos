@@ -10,6 +10,8 @@ import VisionKit
 import Vision
 
 struct ReceiptScannerView: UIViewControllerRepresentable {
+    /// Called as soon as the user confirms the scan, before text recognition starts.
+    var onScanFinished: () -> Void
     var onTextRecognized: (String) -> Void
     var onDismiss: () -> Void
 
@@ -22,20 +24,23 @@ struct ReceiptScannerView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: VNDocumentCameraViewController, context: Context) {}
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onTextRecognized: onTextRecognized, onDismiss: onDismiss)
+        Coordinator(onScanFinished: onScanFinished, onTextRecognized: onTextRecognized, onDismiss: onDismiss)
     }
 
     final class Coordinator: NSObject, VNDocumentCameraViewControllerDelegate {
+        let onScanFinished: () -> Void
         let onTextRecognized: (String) -> Void
         let onDismiss: () -> Void
 
-        init(onTextRecognized: @escaping (String) -> Void, onDismiss: @escaping () -> Void) {
+        init(onScanFinished: @escaping () -> Void, onTextRecognized: @escaping (String) -> Void, onDismiss: @escaping () -> Void) {
+            self.onScanFinished = onScanFinished
             self.onTextRecognized = onTextRecognized
             self.onDismiss = onDismiss
         }
 
         func documentCameraViewController(_ controller: VNDocumentCameraViewController, didFinishWith scan: VNDocumentCameraScan) {
             let pages = (0..<scan.pageCount).compactMap { scan.imageOfPage(at: $0).cgImage }
+            onScanFinished()
             onDismiss()
 
             Task {

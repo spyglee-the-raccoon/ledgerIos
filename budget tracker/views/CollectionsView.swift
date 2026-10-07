@@ -1,18 +1,58 @@
 //
-//  GroupsView.swift
+//  CollectionsView.swift
 //  budget tracker
 //
 //  Created by Maksym Bahrov on 06.10.2026..
 //
 
 import SwiftUI
+import SwiftData
 
-struct GroupsView: View {
+func getTotal (for transactions: [Transaction]) -> Decimal {
+    var sum: Decimal = 0
+    
+    transactions.forEach { transaction in
+        if transaction.kind == .income {
+            sum += transaction.amount
+        } else {
+            sum -= transaction.amount
+        }
+    }
+    
+    return sum
+}
+
+struct CollectionsView: View {
+    @Query var collections: [TransactionCollection]
+    
+    var currency: String { Locale.current.currency?.identifier ?? "EUR" }
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        List {
+            ForEach(collections) { collection in
+                NavigationLink(destination: CollectionView(collection: collection)) {
+                    HStack {
+                        CategoryImageView(
+                            systemImage: collection.systemImage,
+                            color: collection.color)
+                        Text(collection.name)
+                        Spacer()
+                        Text(
+                            getTotal(for: collection.transactions),
+                            format: .currency(code: currency))
+                    }
+                }
+            }
+        }
+        .navigationTitle("collections")
+        .toolbar {
+            NavigationLink(destination: AddCollectionView()) {
+                Image(systemName: "plus")
+            }
+        }
     }
 }
 
 #Preview {
-    GroupsView()
+    CollectionsView().modelContainer(makeMainViewPreviewContainer())
 }

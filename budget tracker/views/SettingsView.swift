@@ -22,6 +22,11 @@ struct SettingsView: View {
     @State private var isImporterPresented = false
     @State private var importResult: CSVImportResult?
     @State private var importError: String?
+    @State private var isExporterPresented = false
+    @State private var exportFiles: [CSVFile] = []
+    @State private var exportTransactionCount = 0
+    @State private var exportedCount: Int?
+    @State private var exportError: String?
 
     var body: some View {
         List {
@@ -35,6 +40,11 @@ struct SettingsView: View {
                     Image(systemName: "creditcard")
                         .foregroundStyle(.green)
                     Text("sources")
+                }
+                NavigationLink(destination: CollectionsView()) {
+                    Image(systemName: "rectangle.3.group")
+                        .foregroundStyle(.cyan)
+                    Text("collections")
                 }
                 Toggle(isOn: reminderBinding) {
                     HStack {
@@ -57,6 +67,14 @@ struct SettingsView: View {
                         Image(systemName: "square.and.arrow.down")
                             .foregroundStyle(.orange)
                         Text("import_csv")
+                            .foregroundStyle(.primary)
+                    }
+                }
+                Button(action: prepareExport) {
+                    HStack {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundStyle(.teal)
+                        Text("export_csv")
                             .foregroundStyle(.primary)
                     }
                 }
@@ -102,6 +120,51 @@ struct SettingsView: View {
             Button("OK") {}
         } message: { message in
             Text(message)
+        }
+        .fileExporter(
+            isPresented: $isExporterPresented,
+            documents: exportFiles,
+            contentType: .commaSeparatedText
+        ) { result in
+            switch result {
+            case .success(let urls) where !urls.isEmpty:
+                exportedCount = exportTransactionCount
+            case .success:
+                break
+            case .failure(let error):
+                exportError = error.localizedDescription
+            }
+        }
+        .alert("export_finished", isPresented: Binding(
+            get: { exportedCount != nil },
+            set: { if !$0 { exportedCount = nil } }
+        ), presenting: exportedCount) { _ in
+            Button("OK") {}
+        } message: { count in
+            Text("export_summary \(count)")
+        }
+        .alert("export_failed", isPresented: Binding(
+            get: { exportError != nil },
+            set: { if !$0 { exportError = nil } }
+        ), presenting: exportError) { _ in
+            Button("OK") {}
+        } message: { message in
+            Text(message)
+        }
+    }
+
+    private func prepareExport() {
+        do {
+            let export = try CSVExporter.makeFiles(from: modelContext)
+            guard !export.files.isEmpty else {
+                exportError = String(localized: "export_nothing")
+                return
+            }
+            exportFiles = export.files
+            exportTransactionCount = export.count
+            isExporterPresented = true
+        } catch {
+            exportError = error.localizedDescription
         }
     }
 

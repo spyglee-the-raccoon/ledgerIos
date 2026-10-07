@@ -20,6 +20,7 @@ struct MainView: View {
     
     @State private var activeSheet: MainViewActiveSheet?
     @State private var currentMonth = DateInterval.month(containing: .now)
+    @State private var sharedReceiptText: String?
     
     var body: some View {
         NavigationStack {
@@ -35,9 +36,11 @@ struct MainView: View {
                     }
                 }
             }
-            .sheet(item: $activeSheet) { sheet in
+            .sheet(item: $activeSheet, onDismiss: { sharedReceiptText = nil }) { sheet in
                 switch sheet {
-                case .add: NavigationStack { AddTransactionView().navigationTitle("add_transaction") }
+                case .add: NavigationStack {
+                    AddTransactionView(sharedReceiptText: sharedReceiptText).navigationTitle("add_transaction")
+                }
                 case .expenses: ExpensesView()
                 case .incomes: IncomesView()
                 }
@@ -52,6 +55,17 @@ struct MainView: View {
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active { refreshCurrentMonth() }
         }
+        .onOpenURL(perform: handleSharedReceipt)
+    }
+    
+    /// Handles `ladger://scan?text=...` sent by the share extension after it recognized a receipt photo.
+    private func handleSharedReceipt(_ url: URL) {
+        guard url.scheme == "ladger", url.host() == "scan",
+              let text = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+                .queryItems?.first(where: { $0.name == "text" })?.value,
+              !text.isEmpty else { return }
+        sharedReceiptText = text
+        activeSheet = .add
     }
     
     private func refreshCurrentMonth() {
@@ -66,7 +80,7 @@ func makeMainViewPreviewContainer() -> ModelContainer {
     let container: ModelContainer
     do {
         container = try ModelContainer(
-            for: Source.self, Transaction.self, Category.self,
+            for: Source.self, Transaction.self, Category.self, TransactionCollection.self,
             configurations: config
         )
     } catch {
@@ -82,6 +96,8 @@ func makeMainViewPreviewContainer() -> ModelContainer {
     let expense2 = Transaction(amount: 50, kind: TransactionKind.expense, source: source, note: "", date: Date.now, category: expenseCategory2)
     let expense3 = Transaction(amount: 100.20, kind: TransactionKind.expense, source: source, note: "Date", date: Date.now, category: expenseCategory3)
     let income = Transaction(amount: 100, kind: TransactionKind.income, destination: source, note: "Some Income Note, what if it gets very long long long long", date: Date.now, category: incomeCategory)
+    let collection1 = TransactionCollection(id: UUID(), name: "Trip to Naples", systemImage: "globe", color: .red, transactions: [expense, expense2])
+    let collection2 = TransactionCollection(id: UUID(), name: "Busines trip", systemImage: "wallet.pass", color: .blue, transactions: [expense3])
     
     container.mainContext.insert(source)
     container.mainContext.insert(expense)
@@ -90,6 +106,8 @@ func makeMainViewPreviewContainer() -> ModelContainer {
     container.mainContext.insert(income)
     container.mainContext.insert(incomeCategory)
     container.mainContext.insert(incomeCategory2)
+    container.mainContext.insert(collection1)
+    container.mainContext.insert(collection2)
     return container
 }
 

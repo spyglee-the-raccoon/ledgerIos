@@ -19,6 +19,7 @@ private let kaChingSoundID: SystemSoundID? = {
 
 struct AddTransactionView: View {
     var transaction: Transaction?
+    var sharedReceiptText: String?
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -32,8 +33,9 @@ struct AddTransactionView: View {
     @Query var categories: [Category]
     @Query var sources: [Source]
     
-    init(transaction: Transaction? = nil, selectedKind: TransactionKind = .expense) {
+    init(transaction: Transaction? = nil, selectedKind: TransactionKind = .expense, sharedReceiptText: String? = nil) {
         self.transaction = transaction
+        self.sharedReceiptText = sharedReceiptText
         var draft: TransactionDraft
         if let transaction {
             draft = TransactionDraft(transaction)
@@ -131,7 +133,10 @@ struct AddTransactionView: View {
     }
     
     private func parseText(_ recognizedText: String) -> Void {
-        guard !recognizedText.isEmpty else { return }
+        guard !recognizedText.isEmpty else {
+            isParsing = false
+            return
+        }
         Task { @MainActor in
             isParsing = true
             defer { isParsing = false }
@@ -163,6 +168,7 @@ struct AddTransactionView: View {
     }
     
     private func onScan() {
+        ReceiptParser.prewarm()
         showCamera = true
     }
     
@@ -170,7 +176,7 @@ struct AddTransactionView: View {
         if isParsing {
             Text("parsing")
                 .animation(.snappy)
-        } else {
+        } else if !isEditing {
             
             Button(action: onScan) {
                 HStack{
@@ -180,17 +186,14 @@ struct AddTransactionView: View {
             }
             
             .disabled(!VNDocumentCameraViewController.isSupported)
-            .fullScreenCover(isPresented: $showCamera) {
-                ReceiptScannerView(
-                    onTextRecognized: parseText,
-                    onDismiss: {
-                        showCamera = false
-                    }
-                )
-                .ignoresSafeArea()
-            }
         }
         Form {
+            if isEditing {
+                Section {
+                    DatePicker("date", selection: $draft.date, displayedComponents: [.date, .hourAndMinute])
+                        .padding(.horizontal)
+                }
+            }
             Picker("kind", selection: $draft.kind) {
                 ForEach(TransactionKind.allCases) { kind in
                     Text(getTransactionKindName(kind))
@@ -253,7 +256,20 @@ struct AddTransactionView: View {
                 TextField("note", text: $draft.note)
             }
         }
+        .fullScreenCover(isPresented: $showCamera) {
+            ReceiptScannerView(
+                onScanFinished: { isParsing = true },
+                onTextRecognized: parseText,
+                onDismiss: {
+                    showCamera = false
+                }
+            )
+            .ignoresSafeArea()
+        }
         .onAppear(perform: suggestSources)
+        .onChange(of: sharedReceiptText, initial: true) {
+            if let sharedReceiptText { parseText(sharedReceiptText) }
+        }
         .onChange(of: draft.kind, onKindChange)
         .navigationTitle(isEditing ? "edit_transaction" : "add_transaction")
         .navigationBarTitleDisplayMode(.inline)

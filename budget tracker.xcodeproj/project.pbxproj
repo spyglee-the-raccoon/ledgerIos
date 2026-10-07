@@ -6,11 +6,59 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5036934830723D4F00F6FD67 /* share with budget tracker.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5036933E30723D4F00F6FD67 /* share with budget tracker.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		5036934630723D4F00F6FD67 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 50CB66513051F0C2008B8845 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5036933D30723D4F00F6FD67;
+			remoteInfo = "share with budget tracker";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5036934930723D4F00F6FD67 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				5036934830723D4F00F6FD67 /* share with budget tracker.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		5036933E30723D4F00F6FD67 /* share with budget tracker.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "share with budget tracker.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5036934E30723F0200F6FD67 /* budget-tracker-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "budget-tracker-Info.plist"; sourceTree = "<group>"; };
 		50CB66593051F0C3008B8845 /* budget tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "budget tracker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5036934C30723D4F00F6FD67 /* Exceptions for "share with budget tracker" folder in "share with budget tracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5036933D30723D4F00F6FD67 /* share with budget tracker */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		5036933F30723D4F00F6FD67 /* share with budget tracker */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5036934C30723D4F00F6FD67 /* Exceptions for "share with budget tracker" folder in "share with budget tracker" target */,
+			);
+			path = "share with budget tracker";
+			sourceTree = "<group>";
+		};
 		50CB665B3051F0C3008B8845 /* budget tracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "budget tracker";
@@ -19,6 +67,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		5036933B30723D4F00F6FD67 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		50CB66563051F0C2008B8845 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -32,7 +87,9 @@
 		50CB66503051F0C2008B8845 = {
 			isa = PBXGroup;
 			children = (
+				5036934E30723F0200F6FD67 /* budget-tracker-Info.plist */,
 				50CB665B3051F0C3008B8845 /* budget tracker */,
+				5036933F30723D4F00F6FD67 /* share with budget tracker */,
 				50CB665A3051F0C3008B8845 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +98,7 @@
 			isa = PBXGroup;
 			children = (
 				50CB66593051F0C3008B8845 /* budget tracker.app */,
+				5036933E30723D4F00F6FD67 /* share with budget tracker.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,6 +106,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		5036933D30723D4F00F6FD67 /* share with budget tracker */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5036934D30723D4F00F6FD67 /* Build configuration list for PBXNativeTarget "share with budget tracker" */;
+			buildPhases = (
+				5036933A30723D4F00F6FD67 /* Sources */,
+				5036933B30723D4F00F6FD67 /* Frameworks */,
+				5036933C30723D4F00F6FD67 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5036933F30723D4F00F6FD67 /* share with budget tracker */,
+			);
+			name = "share with budget tracker";
+			packageProductDependencies = (
+			);
+			productName = "share with budget tracker";
+			productReference = 5036933E30723D4F00F6FD67 /* share with budget tracker.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		50CB66583051F0C2008B8845 /* budget tracker */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 50CB66643051F0C4008B8845 /* Build configuration list for PBXNativeTarget "budget tracker" */;
@@ -55,10 +135,12 @@
 				50CB66553051F0C2008B8845 /* Sources */,
 				50CB66563051F0C2008B8845 /* Frameworks */,
 				50CB66573051F0C2008B8845 /* Resources */,
+				5036934930723D4F00F6FD67 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				5036934730723D4F00F6FD67 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				50CB665B3051F0C3008B8845 /* budget tracker */,
@@ -77,9 +159,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2660;
+				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
+					5036933D30723D4F00F6FD67 = {
+						CreatedOnToolsVersion = 27.0;
+					};
 					50CB66583051F0C2008B8845 = {
 						CreatedOnToolsVersion = 26.6;
 					};
@@ -102,11 +187,19 @@
 			projectRoot = "";
 			targets = (
 				50CB66583051F0C2008B8845 /* budget tracker */,
+				5036933D30723D4F00F6FD67 /* share with budget tracker */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		5036933C30723D4F00F6FD67 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		50CB66573051F0C2008B8845 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -117,6 +210,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		5036933A30723D4F00F6FD67 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		50CB66553051F0C2008B8845 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -126,7 +226,73 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		5036934730723D4F00F6FD67 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5036933D30723D4F00F6FD67 /* share with budget tracker */;
+			targetProxy = 5036934630723D4F00F6FD67 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		5036934A30723D4F00F6FD67 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2HG73C3274;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "share with budget tracker/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "share with budget tracker";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "work.spyglee.budget-tracker.share-with-budget-tracker";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5036934B30723D4F00F6FD67 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2HG73C3274;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "share with budget tracker/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "share with budget tracker";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "work.spyglee.budget-tracker.share-with-budget-tracker";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		50CB66623051F0C4008B8845 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -265,6 +431,7 @@
 				DEVELOPMENT_TEAM = 2HG73C3274;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "budget-tracker-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Ladger;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Used to take photos of receipts.";
@@ -302,6 +469,7 @@
 				DEVELOPMENT_TEAM = 2HG73C3274;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "budget-tracker-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Ladger;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Used to take photos of receipts.";
@@ -331,6 +499,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		5036934D30723D4F00F6FD67 /* Build configuration list for PBXNativeTarget "share with budget tracker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5036934A30723D4F00F6FD67 /* Debug */,
+				5036934B30723D4F00F6FD67 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		50CB66543051F0C2008B8845 /* Build configuration list for PBXProject "budget tracker" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
