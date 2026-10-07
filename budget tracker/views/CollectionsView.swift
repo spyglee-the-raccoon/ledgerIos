@@ -14,7 +14,7 @@ func getTotal (for transactions: [Transaction]) -> Decimal {
     transactions.forEach { transaction in
         if transaction.kind == .income {
             sum += transaction.amount
-        } else {
+        } else if transaction.kind == .expense {
             sum -= transaction.amount
         }
     }
