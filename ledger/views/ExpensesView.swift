@@ -18,6 +18,7 @@ func headerTitle(for day: Date) -> LocalizedStringResource {
 struct ExpensesView: View {
     @Environment(\.modelContext) var modelContext
     @Query private var expenses: [Transaction]
+    @State private var searchTransactions: String = ""
     
     init() {
         let expense = TransactionKind.expense
@@ -32,9 +33,18 @@ struct ExpensesView: View {
         }
     }
     
+    private var filteretedTransactions: [Transaction] {
+        let query = searchTransactions.trimmingCharacters(in: .whitespaces)
+        guard !query.isEmpty else { return expenses }
+        return expenses.filter { transaction in
+            transaction.note.localizedStandardContains(query) ||
+            (transaction.category?.name.localizedStandardContains(query) ?? false)
+        }
+    }
+    
     private var sections: [(day: Date, items: [Transaction])] {
         let calendar = Calendar.current
-        let grouped = Dictionary(grouping: expenses) {
+        let grouped = Dictionary(grouping: filteretedTransactions) {
             calendar.startOfDay(for: $0.date)
         }
         return grouped
@@ -45,6 +55,10 @@ struct ExpensesView: View {
     var body: some View {
         NavigationStack {
             List {
+                HStack {
+                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                    TextField("search_transactions", text: $searchTransactions)
+                }
                 ForEach(sections, id: \.day) { section in
                     Section {
                         ForEach(section.items) { transaction in

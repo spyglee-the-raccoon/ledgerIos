@@ -11,6 +11,7 @@ import SwiftData
 struct IncomesView: View {
     @Environment(\.modelContext) var modelContext
     @Query private var incomes: [Transaction]
+    @State private var searchTransactions: String = ""
     
     init() {
         let income = TransactionKind.income
@@ -25,9 +26,18 @@ struct IncomesView: View {
         }
     }
     
+    private var filteretedTransactions: [Transaction] {
+        let query = searchTransactions.trimmingCharacters(in: .whitespaces)
+        guard !query.isEmpty else { return incomes }
+        return incomes.filter { transaction in
+            transaction.note.localizedStandardContains(query) ||
+            (transaction.category?.name.localizedStandardContains(query) ?? false)
+        }
+    }
+    
     private var sections: [(day: Date, items: [Transaction])] {
         let calendar = Calendar.current
-        let grouped = Dictionary(grouping: incomes) {
+        let grouped = Dictionary(grouping: filteretedTransactions) {
             calendar.startOfDay(for: $0.date)
         }
         return grouped
@@ -38,6 +48,10 @@ struct IncomesView: View {
     var body: some View {
         NavigationStack {
             List {
+                HStack {
+                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                    TextField("search_transactions", text: $searchTransactions)
+                }
                 ForEach(sections, id: \.day) { section in
                     Section {
                         ForEach(section.items) { transaction in
