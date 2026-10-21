@@ -127,7 +127,7 @@ func makeMainViewPreviewContainer() -> ModelContainer {
     let container: ModelContainer
     do {
         container = try ModelContainer(
-            for: Source.self, Transaction.self, Category.self, TransactionCollection.self,
+            for: Source.self, Transaction.self, Category.self, TransactionCollection.self, PlannedTransaction.self,
             configurations: config
         )
     } catch {
@@ -155,6 +155,37 @@ func makeMainViewPreviewContainer() -> ModelContainer {
     container.mainContext.insert(incomeCategory2)
     container.mainContext.insert(collection1)
     container.mainContext.insert(collection2)
+
+    // Demo planned transactions covering the different card states.
+    let savings = Source(name: "Savings", systemImage: "building.columns", initValue: 1000, color: CategoryColor.indigo)
+    let calendar = Calendar.current
+    func daysAgo(_ days: Int) -> Date { calendar.date(byAdding: .day, value: -days, to: .now) ?? .now }
+
+    let plannedTransactions = [
+        // Monthly expense with a note
+        PlannedTransaction(amount: 12.99, kind: .expense, source: source, note: "Netflix", category: expenseCategory, frequency: .monthly, interval: 1, startDate: daysAgo(20), occurrencesGenerated: 1, isPaused: false),
+        // Monthly expense without a note (falls back to category name)
+        PlannedTransaction(amount: 850, kind: .expense, source: source, note: "", category: expenseCategory, frequency: .monthly, interval: 1, startDate: daysAgo(3), occurrencesGenerated: 1, isPaused: false),
+        // Weekly expense
+        PlannedTransaction(amount: 65.40, kind: .expense, source: source, note: "Weekly groceries", category: expenseCategory2, frequency: .weekly, interval: 1, startDate: daysAgo(2), occurrencesGenerated: 1, isPaused: false),
+        // Monthly income
+        PlannedTransaction(amount: 3200, kind: .income, destination: source, note: "", category: incomeCategory, frequency: .monthly, interval: 1, startDate: daysAgo(25), occurrencesGenerated: 1, isPaused: false),
+        // Custom interval income
+        PlannedTransaction(amount: 450, kind: .income, destination: source, note: "Freelance retainer", category: incomeCategory2, frequency: .weekly, interval: 2, startDate: daysAgo(10), occurrencesGenerated: 1, isPaused: false),
+        // Transfer
+        PlannedTransaction(amount: 200, kind: .transfer, source: source, destination: savings, note: "", frequency: .monthly, interval: 1, startDate: daysAgo(15), occurrencesGenerated: 1, isPaused: false),
+        // Yearly expense with a long note
+        PlannedTransaction(amount: 129, kind: .expense, source: source, note: "Annual software license renewal that has a really long description", category: expenseCategory, frequency: .yearly, interval: 1, startDate: daysAgo(300), occurrencesGenerated: 1, isPaused: false),
+        // Paused
+        PlannedTransaction(amount: 39.90, kind: .expense, source: source, note: "Gym membership", category: expenseCategory3, frequency: .monthly, interval: 1, startDate: daysAgo(40), occurrencesGenerated: 2, isPaused: true),
+        // Ended (next due date is past the end date)
+        PlannedTransaction(amount: 75, kind: .expense, source: source, note: "Car loan", category: expenseCategory, frequency: .monthly, interval: 1, startDate: daysAgo(120), endDate: daysAgo(10), occurrencesGenerated: 4, isPaused: false),
+        // Uncategorized, every 3 days
+        PlannedTransaction(amount: 5, kind: .expense, source: source, note: "", frequency: .daily, interval: 3, startDate: daysAgo(1), occurrencesGenerated: 1, isPaused: false)
+    ]
+
+    container.mainContext.insert(savings)
+    plannedTransactions.forEach { container.mainContext.insert($0) }
     return container
 }
 

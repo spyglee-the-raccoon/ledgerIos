@@ -44,6 +44,11 @@ struct CollectionsView: View {
                 }
             }
         }
+        .overlay {
+            if collections.isEmpty {
+                ContentUnavailableView("no_collections", systemImage: "rectangle.3.group")
+            }
+        }
         .navigationTitle("collections")
         .toolbar {
             NavigationLink(destination: AddCollectionView()) {

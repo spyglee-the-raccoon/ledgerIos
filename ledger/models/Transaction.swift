@@ -21,6 +21,7 @@ struct TransactionDraft {
     var note: String = ""
     var date: Date = Date.now
     var category: Category?
+    var plannedTransaction: PlannedTransaction?
     
     init () {}
     
@@ -32,6 +33,7 @@ struct TransactionDraft {
         note = transaction.note
         date = transaction.date
         category = transaction.category
+        plannedTransaction = transaction.plannedTransaction
     }
 
     func apply(to transaction: Transaction) {
@@ -42,6 +44,7 @@ struct TransactionDraft {
         transaction.note = note
         transaction.date = date
         transaction.category = category
+        transaction.plannedTransaction = plannedTransaction
     }
 }
 
@@ -54,8 +57,9 @@ final class Transaction {
     var note: String = ""
     var date: Date = Date.now
     var category: Category?
+    var plannedTransaction: PlannedTransaction?
     
-    init(amount: Decimal, kind: TransactionKind, source: Source? = nil, destination: Source? = nil, note: String, date: Date, category: Category? = nil) {
+    init(amount: Decimal, kind: TransactionKind, source: Source? = nil, destination: Source? = nil, note: String, date: Date, category: Category? = nil, plannedTransaction: PlannedTransaction? = nil) {
         self.amount = amount
         self.kind = kind
         self.source = source
@@ -63,5 +67,6 @@ final class Transaction {
         self.note = note
         self.date = date
         self.category = category
+        self.plannedTransaction = plannedTransaction
     }
 }

@@ -11,7 +11,7 @@ import SwiftUI
 @main
 struct budget_trackerApp: App {
     let modelContainer: ModelContainer = {
-        let schema = Schema([Category.self, Source.self, Transaction.self, MerchantCategory.self, TransactionCollection.self])
+        let schema = Schema([Category.self, Source.self, Transaction.self, MerchantCategory.self, TransactionCollection.self, PlannedTransaction.self])
         let configuration = ModelConfiguration(
             schema: schema,
             // Switch to .private("iCloud.work.spyglee.ledger") once iCloud is enabled on a paid team

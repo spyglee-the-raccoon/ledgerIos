@@ -70,6 +70,11 @@ struct ExpensesView: View {
                     }
                 }
             }
+            .overlay {
+                if sections.isEmpty {
+                    ContentUnavailableView("no_transactions", systemImage: "receipt")
+                }
+            }
             .navigationTitle("expenses")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

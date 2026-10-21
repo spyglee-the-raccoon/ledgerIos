@@ -46,6 +46,11 @@ struct SettingsView: View {
                         .foregroundStyle(.cyan)
                     Text("collections")
                 }
+                NavigationLink(destination: PlannedTransactionsView()) {
+                    Image(systemName: "clock.arrow.trianglehead.clockwise.rotate.90.path.dotted")
+                        .foregroundStyle(.yellow)
+                    Text("planned_transactions")
+                }
                 Toggle(isOn: reminderBinding) {
                     HStack {
                         Image(systemName: "bell.badge")

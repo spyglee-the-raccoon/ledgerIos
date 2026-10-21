@@ -42,11 +42,57 @@ enum CSVExporter {
         let transactions = try context.fetch(descriptor)
 
         let byKind = Dictionary(grouping: transactions, by: \.kind)
-        let files = TransactionKind.allCases.compactMap { kind -> CSVFile? in
+        var files = TransactionKind.allCases.compactMap { kind -> CSVFile? in
             guard let items = byKind[kind], !items.isEmpty else { return nil }
             return CSVFile(fileName: "\(kind.rawValue)s.csv", text: csv(for: kind, items))
         }
+
+        let sources = try context.fetch(FetchDescriptor<Source>(sortBy: [SortDescriptor(\.createdAt)]))
+        if !sources.isEmpty {
+            files.append(CSVFile(fileName: "sources.csv", text: sourcesCSV(sources)))
+        }
+
+        let planned = try context.fetch(FetchDescriptor<PlannedTransaction>(sortBy: [SortDescriptor(\.startDate)]))
+        if !planned.isEmpty {
+            files.append(CSVFile(fileName: "planned_transactions.csv", text: plannedCSV(planned)))
+        }
+
         return (files, transactions.count)
+    }
+
+    private static func sourcesCSV(_ sources: [Source]) -> String {
+        let header = ["name", "initial_value", "icon", "color"]
+        let rows = sources.map { source in
+            [source.name, NSDecimalNumber(decimal: source.initValue).stringValue, source.systemImage, source.color.rawValue]
+        }
+        return joined([header] + rows)
+    }
+
+    private static func plannedCSV(_ planned: [PlannedTransaction]) -> String {
+        let header = ["kind", "amount", "source", "destination", "category", "frequency",
+                      "interval", "start_date", "end_date", "paused", "details"]
+        let rows = planned.map { item -> [String] in
+            [
+                item.kind.rawValue,
+                NSDecimalNumber(decimal: item.amount).stringValue,
+                item.source?.name ?? "",
+                item.destination?.name ?? "",
+                item.category?.name ?? "",
+                item.frequency.rawValue,
+                String(item.interval),
+                dateFormatter.string(from: item.startDate),
+                item.endDate.map(dateFormatter.string(from:)) ?? "",
+                item.isPaused ? "true" : "false",
+                item.note
+            ]
+        }
+        return joined([header] + rows)
+    }
+
+    private static func joined(_ lines: [[String]]) -> String {
+        lines
+            .map { $0.map(escaped).joined(separator: ";") }
+            .joined(separator: "\n") + "\n"
     }
 
     private static func csv(for kind: TransactionKind, _ transactions: [Transaction]) -> String {
@@ -71,13 +117,9 @@ enum CSVExporter {
             }
         }
 
-        return ([header] + rows)
-            .map { $0.map(escaped).joined(separator: ";") }
-            .joined(separator: "\n") + "\n"
+        return joined([header] + rows)
     }
 
-    /// The importer splits on every semicolon and line break, so those are replaced
-    /// rather than quoted to keep values intact on re-import.
     private static func escaped(_ value: String) -> String {
         value
             .replacingOccurrences(of: ";", with: ",")

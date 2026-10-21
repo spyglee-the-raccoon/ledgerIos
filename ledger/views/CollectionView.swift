@@ -100,6 +100,11 @@ struct CollectionView: View {
             }
         }
         .navigationTitle(collection.name)
+        .overlay {
+            if sections.isEmpty {
+                ContentUnavailableView("no_transactions", systemImage: "receipt")
+            }
+        }
         .toolbar {
             NavigationLink(destination: AddCollectionView(collection: collection)) {
                 Image(systemName: "pencil")

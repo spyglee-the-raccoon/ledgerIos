@@ -108,7 +108,6 @@ struct TransactionCardView: View {
     }
 }
 
-/// Modal list of existing collections used to pick a destination for a transaction.
 private struct CollectionPickerView: View {
     @Query var collections: [TransactionCollection]
     @Environment(\.dismiss) private var dismiss

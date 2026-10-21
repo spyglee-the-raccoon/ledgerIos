@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var modelContext
 //    @State private var isLoggedIn: Bool = false
     @State private var blurRadius: CGFloat = 0
     @AppStorage(AppLock.storageKey) private var isBiometricsRequired: Bool = false
@@ -41,6 +43,9 @@ struct ContentView: View {
                 }
                 .task {
                     if isLocked { unlock() }
+                }
+                .onChange(of: scenePhase, initial: true) { _, phase in
+                    if phase == .active { try? RecurrenceEngine.generateDue(in: modelContext) }
                 }
 //        } else {
 //            NavigationStack {

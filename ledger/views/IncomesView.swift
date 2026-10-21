@@ -64,6 +64,11 @@ struct IncomesView: View {
                 }
             }
             .navigationTitle("incomes")
+            .overlay {
+                if sections.isEmpty {
+                    ContentUnavailableView("no_transactions", systemImage: "receipt")
+                }
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

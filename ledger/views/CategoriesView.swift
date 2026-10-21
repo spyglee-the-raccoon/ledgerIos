@@ -70,6 +70,12 @@ struct CategoriesView: View {
                     .onDelete { deleteCategory($0, from: incomeCategories) }
                 }
             }
+            .overlay {
+                if expenseCategories.isEmpty && incomeCategories.isEmpty {
+                    ContentUnavailableView("no_categories", systemImage: "square.grid.2x2")
+                }
+            }
+
             .navigationTitle("categories")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
