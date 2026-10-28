@@ -49,6 +49,7 @@ final class Category {
     var categoryKind: CategoryKind = CategoryKind.expense
     @Relationship(deleteRule: .nullify, inverse: \Transaction.category) var transactions: [Transaction]? = []
     @Relationship(deleteRule: .cascade, inverse: \MerchantCategory.category) var merchantMappings: [MerchantCategory]? = []
+    @Relationship(deleteRule: .cascade, inverse: \Budget.category) var budgets: [Budget]? = []
 
     init(name: String = "", systemImage: String = "carrot", color: CategoryColor = .primary, categoryKind: CategoryKind = .expense, transactions: [Transaction] = []) {
         self.name = name

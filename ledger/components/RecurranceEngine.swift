@@ -28,5 +28,6 @@ enum RecurrenceEngine {
         }
         try context.save()
         PlannedTransactionNotifier.reschedule(in: context, now: now)
+        BudgetNotifier.check(in: context, now: now)
     }
 }

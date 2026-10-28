@@ -29,10 +29,7 @@ struct IncomesView: View {
     private var filteretedTransactions: [Transaction] {
         let query = searchTransactions.trimmingCharacters(in: .whitespaces)
         guard !query.isEmpty else { return incomes }
-        return incomes.filter { transaction in
-            transaction.note.localizedStandardContains(query) ||
-            (transaction.category?.name.localizedStandardContains(query) ?? false)
-        }
+        return incomes.filter { $0.matches(query) }
     }
     
     private var sections: [(day: Date, items: [Transaction])] {

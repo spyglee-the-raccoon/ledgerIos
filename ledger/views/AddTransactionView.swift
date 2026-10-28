@@ -29,6 +29,9 @@ struct AddTransactionView: View {
     @State private var text: String?
     @State private var isParsing: Bool = false
     @State private var scannedMerchant: String?
+    @State private var scannedPhotos: [Data] = []
+    @State private var scannedItems: [ParsedReceiptItem] = []
+    @State private var isRecognizingItems: Bool = false
     
     @Query var categories: [Category]
     @Query var sources: [Source]
@@ -66,6 +69,7 @@ struct AddTransactionView: View {
         guard let transaction else { return }
         draft.apply(to: transaction)
         learnMerchantCategory()
+        BudgetNotifier.check(in: modelContext)
         dismiss()
     }
     
@@ -103,13 +107,43 @@ struct AddTransactionView: View {
             category: draft.category
         )
         modelContext.insert(newTransaction)
+        attachReceipt(to: newTransaction)
         learnMerchantCategory()
+        BudgetNotifier.check(in: modelContext)
         if let kaChingSoundID {
             AudioServicesPlaySystemSound(kaChingSoundID)
         }
         dismiss()
     }
     
+    /// Saves the scanned pages and recognized items with the transaction.
+    private func attachReceipt(to transaction: Transaction) {
+        transaction.receiptPhotos = scannedPhotos.enumerated().map { index, data in
+            ReceiptPhoto(imageData: data, pageIndex: index)
+        }
+        // Item prices only make sense for purchases.
+        guard draft.kind == .expense else { return }
+        transaction.receiptItems = scannedItems.enumerated().map { index, item in
+            ReceiptItem(
+                name: item.name,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: item.totalPrice,
+                position: index
+            )
+        }
+    }
+
+    private var savedPhotos: [Data] {
+        (transaction?.receiptPhotos ?? [])
+            .sorted { $0.pageIndex < $1.pageIndex }
+            .map(\.imageData)
+    }
+
+    private var savedItems: [ReceiptItem] {
+        (transaction?.receiptItems ?? []).sorted { $0.position < $1.position }
+    }
+
     private var isValid: Bool {
         switch draft.kind {
         case .expense:
@@ -139,7 +173,11 @@ struct AddTransactionView: View {
         }
         Task { @MainActor in
             isParsing = true
-            defer { isParsing = false }
+            isRecognizingItems = true
+            defer {
+                isParsing = false
+                isRecognizingItems = false
+            }
 
             let receipt = await ReceiptParser.parse(
                 recognizedText,
@@ -167,6 +205,10 @@ struct AddTransactionView: View {
             if let date = receipt.date {
                 draft.date = date
             }
+
+            // The form is filled now; items keep loading in their own section.
+            isParsing = false
+            scannedItems = await ReceiptParser.parseItems(recognizedText)
         }
     }
     
@@ -256,10 +298,13 @@ struct AddTransactionView: View {
             Section("note") {
                 TextField("note", text: $draft.note)
             }
+
+            receiptSections
         }
         .fullScreenCover(isPresented: $showCamera) {
             ReceiptScannerView(
                 onScanFinished: { isParsing = true },
+                onPagesScanned: { scannedPhotos = $0 },
                 onTextRecognized: parseText,
                 onDismiss: {
                     showCamera = false
@@ -279,7 +324,51 @@ struct AddTransactionView: View {
                 Button(action: isEditing ? editTransaction : addTransaction) {
                     Image(systemName: "arrow.down.circle")
                 }
-                .disabled(!isValid)
+                // Saving mid-recognition would drop the items that are still loading.
+                .disabled(!isValid || isRecognizingItems)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var receiptSections: some View {
+        let photos = isEditing ? savedPhotos : scannedPhotos
+        if !photos.isEmpty {
+            Section("receipt") {
+                ReceiptPhotosView(pages: photos)
+            }
+        }
+
+        if draft.kind == .expense {
+            if isEditing, !savedItems.isEmpty {
+                Section("receipt_items") {
+                    ForEach(savedItems) { item in
+                        ReceiptItemRowView(name: item.name, quantity: item.quantity, unitPrice: item.unitPrice, totalPrice: item.totalPrice)
+                    }
+                    .onDelete { offsets in
+                        offsets.map { savedItems[$0] }.forEach(modelContext.delete)
+                    }
+                }
+            } else if isRecognizingItems || !scannedItems.isEmpty {
+                Section {
+                    if isRecognizingItems {
+                        HStack {
+                            ProgressView()
+                            Text("recognizing_items")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    ForEach(scannedItems) { item in
+                        ReceiptItemRowView(name: item.name, quantity: item.quantity, unitPrice: item.unitPrice, totalPrice: item.totalPrice)
+                    }
+                    .onDelete { scannedItems.remove(atOffsets: $0) }
+                } header: {
+                    Text("receipt_items")
+                } footer: {
+                    if !scannedItems.isEmpty {
+                        Text("receipt_items_footer")
+                    }
+                }
             }
         }
     }

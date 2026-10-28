@@ -15,7 +15,97 @@ struct ParsedReceipt {
     var categoryName: String? = nil
 }
 
+struct ParsedReceiptItem: Identifiable, Sendable {
+    let id = UUID()
+    var name: String
+    var quantity: Decimal
+    var unitPrice: Decimal
+    var totalPrice: Decimal
+}
+
 enum ReceiptParser {
+    private static let maxItems = 80
+
+    /// Recognizes the purchased product lines. Runs as a separate request so a long
+    /// item list can't push the total, date and category out of the model's context.
+    /// Returns an empty list when the on-device model isn't available.
+    static func parseItems(_ text: String) async -> [ParsedReceiptItem] {
+        guard SystemLanguageModel.default.isAvailable else { return [] }
+        let session = LanguageModelSession(instructions: """
+            You list the purchased products from OCR text of shopping receipts. \
+            The text may contain OCR errors. Only use values that appear in the text. \
+            Numbers often use a decimal comma (1,29). A product line usually shows the name, \
+            then quantity × unit price and the line total; weighed goods show the weight in kg as the quantity. \
+            Skip totals, subtotals, VAT/tax (PDV, ПДВ, PTU) tables, payment, change, card, \
+            loyalty points and store information lines. \
+            If a discount line directly follows a product, subtract it from that product's line total.
+            """)
+
+        do {
+            let content = try await session.respond(
+                to: "Receipt text:\n\(text)",
+                schema: try makeItemsSchema()
+            ).content
+            guard case .structure(let properties, _) = content.kind,
+                  case .array(let elements)? = properties["items"]?.kind else { return [] }
+            return elements.compactMap(item(from:))
+        } catch {
+            return []
+        }
+    }
+
+    private static func makeItemsSchema() throws -> GenerationSchema {
+        let item = DynamicGenerationSchema(name: "Item", properties: [
+            DynamicGenerationSchema.Property(
+                name: "name",
+                description: "Product name exactly as printed, without quantity or price, e.g. MLIJEKO 2,8% 1L",
+                schema: DynamicGenerationSchema(type: String.self)
+            ),
+            DynamicGenerationSchema.Property(
+                name: "quantity",
+                description: "Number of pieces or weight in kg, digits with a dot as decimal separator, e.g. 2 or 0.456; 1 if not printed",
+                schema: DynamicGenerationSchema(type: String.self)
+            ),
+            DynamicGenerationSchema.Property(
+                name: "unitPrice",
+                description: "Price of one piece or one kg, digits with a dot as decimal separator, e.g. 1.29; empty if not printed",
+                schema: DynamicGenerationSchema(type: String.self)
+            ),
+            DynamicGenerationSchema.Property(
+                name: "totalPrice",
+                description: "Line total paid for this product, digits with a dot as decimal separator, e.g. 2.58",
+                schema: DynamicGenerationSchema(type: String.self)
+            )
+        ])
+        let root = DynamicGenerationSchema(name: "ReceiptItems", properties: [
+            DynamicGenerationSchema.Property(
+                name: "items",
+                description: "Every purchased product line in receipt order",
+                schema: DynamicGenerationSchema(arrayOf: item, maximumElements: maxItems)
+            )
+        ])
+        return try GenerationSchema(root: root, dependencies: [])
+    }
+
+    /// Validates one generated line and fills in a missing unit price or total.
+    private static func item(from content: GeneratedContent) -> ParsedReceiptItem? {
+        let name = ((try? content.value(String.self, forProperty: "name")) ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard name.contains(where: \.isLetter) else { return nil }
+
+        let quantity = (try? content.value(String.self, forProperty: "quantity")).flatMap(decimal(from:)) ?? 1
+        let unitPrice = (try? content.value(String.self, forProperty: "unitPrice")).flatMap(decimal(from:))
+        let totalPrice = (try? content.value(String.self, forProperty: "totalPrice")).flatMap(decimal(from:))
+
+        guard let total = totalPrice ?? unitPrice.map({ $0 * quantity }) else { return nil }
+        return ParsedReceiptItem(
+            name: name,
+            quantity: quantity,
+            unitPrice: unitPrice ?? total / quantity,
+            totalPrice: total
+        )
+    }
+
     static func parse(_ text: String, categoryNames: [String]) async -> ParsedReceipt {
         let fallback = parseWithRules(text)
         guard SystemLanguageModel.default.isAvailable,

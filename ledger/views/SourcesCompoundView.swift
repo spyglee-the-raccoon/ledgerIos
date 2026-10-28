@@ -48,10 +48,7 @@ struct SourcesCompoundView: View {
     private var filteretedTransactions: [Transaction] {
         let query = searchTransactions.trimmingCharacters(in: .whitespaces)
         guard !query.isEmpty else { return transactions }
-        return transactions.filter { transaction in
-            transaction.note.localizedStandardContains(query) ||
-            (transaction.category?.name.localizedStandardContains(query) ?? false)
-        }
+        return transactions.filter { $0.matches(query) }
     }
     
     private var sections: [(day: Date, items: [Transaction])] {

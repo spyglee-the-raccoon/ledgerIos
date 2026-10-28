@@ -58,7 +58,9 @@ final class Transaction {
     var date: Date = Date.now
     var category: Category?
     var plannedTransaction: PlannedTransaction?
-    
+    @Relationship(deleteRule: .cascade, inverse: \ReceiptItem.transaction) var receiptItems: [ReceiptItem]? = []
+    @Relationship(deleteRule: .cascade, inverse: \ReceiptPhoto.transaction) var receiptPhotos: [ReceiptPhoto]? = []
+
     init(amount: Decimal, kind: TransactionKind, source: Source? = nil, destination: Source? = nil, note: String, date: Date, category: Category? = nil, plannedTransaction: PlannedTransaction? = nil) {
         self.amount = amount
         self.kind = kind
@@ -68,5 +70,12 @@ final class Transaction {
         self.date = date
         self.category = category
         self.plannedTransaction = plannedTransaction
+    }
+
+    /// Search match on the note, category name or any item bought on the scanned receipt.
+    func matches(_ query: String) -> Bool {
+        note.localizedStandardContains(query)
+            || (category?.name.localizedStandardContains(query) ?? false)
+            || (receiptItems ?? []).contains { $0.name.localizedStandardContains(query) }
     }
 }

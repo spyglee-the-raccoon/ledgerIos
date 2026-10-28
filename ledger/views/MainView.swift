@@ -127,7 +127,7 @@ func makeMainViewPreviewContainer() -> ModelContainer {
     let container: ModelContainer
     do {
         container = try ModelContainer(
-            for: Source.self, Transaction.self, Category.self, TransactionCollection.self, PlannedTransaction.self,
+            for: Source.self, Transaction.self, Category.self, TransactionCollection.self, PlannedTransaction.self, Budget.self, ReceiptItem.self, ReceiptPhoto.self,
             configurations: config
         )
     } catch {
@@ -186,6 +186,28 @@ func makeMainViewPreviewContainer() -> ModelContainer {
 
     container.mainContext.insert(savings)
     plannedTransactions.forEach { container.mainContext.insert($0) }
+
+    // Demo budgets: under, near and over the limit, plus an inactive one.
+    let budgets = [
+        Budget(limit: 500),
+        Budget(limit: 100, category: expenseCategory2),
+        Budget(limit: 22, category: expenseCategory),
+        Budget(limit: 80, isActive: false, category: expenseCategory3)
+    ]
+    budgets.forEach { container.mainContext.insert($0) }
+
+    // Demo receipts: the same products bought monthly over a year, so price comparison has data.
+    for month in 0..<12 {
+        let date = calendar.date(byAdding: .month, value: month - 11, to: .now) ?? .now
+        let milk = Decimal(119 + month * 2) / 100
+        let bread = Decimal(149 + (month / 4) * 10) / 100
+        let receipt = Transaction(amount: milk * 2 + bread, kind: .expense, source: source, note: "Konzum", date: date, category: expenseCategory2)
+        receipt.receiptItems = [
+            ReceiptItem(name: "MLIJEKO 2,8% 1L", quantity: 2, unitPrice: milk, totalPrice: milk * 2, position: 0),
+            ReceiptItem(name: "KRUH POLUBIJELI", quantity: 1, unitPrice: bread, totalPrice: bread, position: 1)
+        ]
+        container.mainContext.insert(receipt)
+    }
     return container
 }
 

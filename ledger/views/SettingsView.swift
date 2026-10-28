@@ -51,6 +51,11 @@ struct SettingsView: View {
                         .foregroundStyle(.yellow)
                     Text("planned_transactions")
                 }
+                NavigationLink(destination: BudgetingView()) {
+                    Image(systemName: "bookmark")
+                        .foregroundStyle(.purple)
+                    Text("budgeting")
+                }
                 Toggle(isOn: reminderBinding) {
                     HStack {
                         Image(systemName: "bell.badge")
@@ -99,6 +104,11 @@ struct SettingsView: View {
                     Image(systemName: "chart.line.uptrend.xyaxis")
                         .foregroundStyle(.purple)
                     Text("top categories")
+                }
+                NavigationLink(destination: PriceComparisonView()) {
+                    Image(systemName: "cart")
+                        .foregroundStyle(.teal)
+                    Text("price_comparison")
                 }
             }
         }
@@ -184,7 +194,7 @@ struct SettingsView: View {
             set: { newValue in
                 Task {
                     if newValue {
-                        isReminderOn = await DailyReminder.enable()
+                        isReminderOn = await DailyReminder.enable(in: modelContext)
                     } else {
                         DailyReminder.disable()
                         isReminderOn = false

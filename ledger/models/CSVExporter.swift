@@ -49,7 +49,7 @@ enum CSVExporter {
 
         let sources = try context.fetch(FetchDescriptor<Source>(sortBy: [SortDescriptor(\.createdAt)]))
         if !sources.isEmpty {
-            files.append(CSVFile(fileName: "sources.csv", text: sourcesCSV(sources)))
+            files.append(CSVFile(fileName: "accounts.csv", text: sourcesCSV(sources)))
         }
 
         let planned = try context.fetch(FetchDescriptor<PlannedTransaction>(sortBy: [SortDescriptor(\.startDate)]))
