@@ -22,6 +22,12 @@ struct BudgetDraft {
     }
 
     func apply(to budget: Budget) {
+        let isChanged = budget.limit != limit
+            || budget.isActive != isActive
+            || budget.category?.persistentModelID != category?.persistentModelID
+        if isChanged {
+            budget.lastAlertDate = nil
+        }
         budget.limit = limit
         budget.isActive = isActive
         budget.category = category
@@ -48,7 +54,17 @@ final class Budget {
 
     /// Share of the limit used by `spent`; `0` when no limit is set.
     func usage(of spent: Decimal) -> Double {
-        guard limit > 0 else { return 0 }
-        return NSDecimalNumber(decimal: spent / limit).doubleValue
+        BudgetCardData(self, spent: spent).usage
+    }
+}
+
+extension BudgetCardData {
+    init(_ budget: Budget, spent: Decimal) {
+        self.init(
+            category: budget.category.map { CategoryLabel($0) },
+            limit: budget.limit,
+            spent: spent,
+            isActive: budget.isActive
+        )
     }
 }

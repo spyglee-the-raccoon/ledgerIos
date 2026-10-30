@@ -20,7 +20,9 @@ private let kaChingSoundID: SystemSoundID? = {
 struct AddTransactionView: View {
     var transaction: Transaction?
     var sharedReceiptText: String?
-    
+    /// Opens the receipt scanner right away, for the Scan quick action.
+    var startsScanning = false
+
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
@@ -30,15 +32,19 @@ struct AddTransactionView: View {
     @State private var isParsing: Bool = false
     @State private var scannedMerchant: String?
     @State private var scannedPhotos: [Data] = []
-    @State private var scannedItems: [ParsedReceiptItem] = []
+    /// Receipt items being edited; saved items are only replaced when this changes.
+    @State private var items: [ParsedReceiptItem]
+    @State private var itemsChanged: Bool = false
+    @State private var editingItem: ParsedReceiptItem?
     @State private var isRecognizingItems: Bool = false
     
     @Query var categories: [Category]
     @Query var sources: [Source]
     
-    init(transaction: Transaction? = nil, selectedKind: TransactionKind = .expense, sharedReceiptText: String? = nil) {
+    init(transaction: Transaction? = nil, selectedKind: TransactionKind = .expense, sharedReceiptText: String? = nil, startsScanning: Bool = false) {
         self.transaction = transaction
         self.sharedReceiptText = sharedReceiptText
+        self.startsScanning = startsScanning
         var draft: TransactionDraft
         if let transaction {
             draft = TransactionDraft(transaction)
@@ -47,6 +53,10 @@ struct AddTransactionView: View {
             draft.kind = selectedKind
         }
         _draft = State(initialValue: draft)
+        let savedItems = (transaction?.receiptItems ?? []).sorted { $0.position < $1.position }
+        _items = State(initialValue: savedItems.map {
+            ParsedReceiptItem(name: $0.name, quantity: $0.quantity, unitPrice: $0.unitPrice, totalPrice: $0.totalPrice)
+        })
     }
     
     var isEditing: Bool {
@@ -68,6 +78,10 @@ struct AddTransactionView: View {
     private func editTransaction() {
         guard let transaction else { return }
         draft.apply(to: transaction)
+        if itemsChanged, draft.kind == .expense {
+            (transaction.receiptItems ?? []).forEach(modelContext.delete)
+            transaction.receiptItems = makeReceiptItems()
+        }
         learnMerchantCategory()
         BudgetNotifier.check(in: modelContext)
         dismiss()
@@ -123,7 +137,11 @@ struct AddTransactionView: View {
         }
         // Item prices only make sense for purchases.
         guard draft.kind == .expense else { return }
-        transaction.receiptItems = scannedItems.enumerated().map { index, item in
+        transaction.receiptItems = makeReceiptItems()
+    }
+
+    private func makeReceiptItems() -> [ReceiptItem] {
+        items.enumerated().map { index, item in
             ReceiptItem(
                 name: item.name,
                 quantity: item.quantity,
@@ -134,14 +152,19 @@ struct AddTransactionView: View {
         }
     }
 
+    private func saveItem(_ item: ParsedReceiptItem) {
+        if let index = items.firstIndex(where: { $0.id == item.id }) {
+            items[index] = item
+        } else {
+            items.append(item)
+        }
+        itemsChanged = true
+    }
+
     private var savedPhotos: [Data] {
         (transaction?.receiptPhotos ?? [])
             .sorted { $0.pageIndex < $1.pageIndex }
             .map(\.imageData)
-    }
-
-    private var savedItems: [ReceiptItem] {
-        (transaction?.receiptItems ?? []).sorted { $0.position < $1.position }
     }
 
     private var isValid: Bool {
@@ -208,7 +231,8 @@ struct AddTransactionView: View {
 
             // The form is filled now; items keep loading in their own section.
             isParsing = false
-            scannedItems = await ReceiptParser.parseItems(recognizedText)
+            items = await ReceiptParser.parseItems(recognizedText)
+            itemsChanged = true
         }
     }
     
@@ -219,7 +243,8 @@ struct AddTransactionView: View {
     
     var body: some View {
         if isParsing {
-            Text("parsing")
+            ProgressView()
+                .accessibilityLabel(Text("parsing"))
                 .animation(.snappy)
         } else if !isEditing {
             
@@ -312,9 +337,19 @@ struct AddTransactionView: View {
             )
             .ignoresSafeArea()
         }
+        .sheet(item: $editingItem) { item in
+            ReceiptItemEditorView(
+                item: item,
+                isNew: !items.contains { $0.id == item.id },
+                onSave: saveItem
+            )
+        }
         .onAppear(perform: suggestSources)
         .onChange(of: sharedReceiptText, initial: true) {
             if let sharedReceiptText { parseText(sharedReceiptText) }
+        }
+        .onChange(of: startsScanning, initial: true) {
+            if startsScanning && !isEditing && VNDocumentCameraViewController.isSupported { onScan() }
         }
         .onChange(of: draft.kind, onKindChange)
         .navigationTitle(isEditing ? "edit_transaction" : "add_transaction")
@@ -340,34 +375,36 @@ struct AddTransactionView: View {
         }
 
         if draft.kind == .expense {
-            if isEditing, !savedItems.isEmpty {
-                Section("receipt_items") {
-                    ForEach(savedItems) { item in
-                        ReceiptItemRowView(name: item.name, quantity: item.quantity, unitPrice: item.unitPrice, totalPrice: item.totalPrice)
-                    }
-                    .onDelete { offsets in
-                        offsets.map { savedItems[$0] }.forEach(modelContext.delete)
+            Section {
+                if isRecognizingItems {
+                    HStack {
+                        ProgressView()
+                        Text("recognizing_items")
+                            .foregroundStyle(.secondary)
                     }
                 }
-            } else if isRecognizingItems || !scannedItems.isEmpty {
-                Section {
-                    if isRecognizingItems {
-                        HStack {
-                            ProgressView()
-                            Text("recognizing_items")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    ForEach(scannedItems) { item in
+                ForEach(items) { item in
+                    Button {
+                        editingItem = item
+                    } label: {
                         ReceiptItemRowView(name: item.name, quantity: item.quantity, unitPrice: item.unitPrice, totalPrice: item.totalPrice)
                     }
-                    .onDelete { scannedItems.remove(atOffsets: $0) }
-                } header: {
-                    Text("receipt_items")
-                } footer: {
-                    if !scannedItems.isEmpty {
-                        Text("receipt_items_footer")
+                    .tint(.primary)
+                }
+                .onDelete { offsets in
+                    items.remove(atOffsets: offsets)
+                    itemsChanged = true
+                }
+                if !isRecognizingItems {
+                    Button("add_item", systemImage: "plus") {
+                        editingItem = ParsedReceiptItem(name: "", quantity: 1, unitPrice: 0, totalPrice: 0)
                     }
+                }
+            } header: {
+                Text("receipt_items")
+            } footer: {
+                if !items.isEmpty {
+                    Text("receipt_items_footer")
                 }
             }
         }

@@ -9,7 +9,6 @@ import SwiftUI
 import SwiftData
 import Charts
 
-/// One purchase of a product, taken from a scanned receipt line.
 struct PricePoint: Identifiable {
     let id: PersistentIdentifier
     let date: Date
@@ -17,11 +16,8 @@ struct PricePoint: Identifiable {
     let store: String
 }
 
-/// The price development of a product bought often enough to compare.
 struct PriceHistory: Identifiable {
-    /// Purchases needed before a product is compared ("more than 10 times").
     static let minimumPurchases = 11
-    /// How many purchases are averaged at each end, so a single sale or OCR error doesn't skew the change.
     private static let sampleSize = 3
 
     let id: String
@@ -31,7 +27,6 @@ struct PriceHistory: Identifiable {
     var startPrice: Decimal { average(points.prefix(Self.sampleSize)) }
     var currentPrice: Decimal { average(points.suffix(Self.sampleSize)) }
 
-    /// Relative change from the first to the latest purchases, e.g. 0.12 for +12%.
     var change: Double {
         guard startPrice > 0 else { return 0 }
         return NSDecimalNumber(decimal: (currentPrice - startPrice) / startPrice).doubleValue
@@ -42,7 +37,6 @@ struct PriceHistory: Identifiable {
         return slice.reduce(0) { $0 + $1.unitPrice } / Decimal(slice.count)
     }
 
-    /// Groups receipt lines by product and keeps only the frequently bought ones, biggest change first.
     static func histories(from items: [ReceiptItem]) -> [PriceHistory] {
         Dictionary(grouping: items, by: \.normalizedName)
             .compactMap { key, items -> PriceHistory? in

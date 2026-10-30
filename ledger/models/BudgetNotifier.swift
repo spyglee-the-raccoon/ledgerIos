@@ -49,8 +49,8 @@ enum BudgetNotifier {
             .first { $0.budget.isGeneral && $0.budget.isActive && $0.budget.limit > 0 }
     }
 
-    /// Notifies once per month when an active budget reaches its limit and
-    /// refreshes the budget hint in the daily reminder.
+    /// Notifies at most once per month per budget when an active budget reaches
+    /// its limit and refreshes the budget hint in the daily reminder.
     static func check(in context: ModelContext, now: Date = .now) {
         let month = DateInterval.month(containing: now)
         let currency = Locale.current.currency?.identifier ?? "EUR"
@@ -59,26 +59,26 @@ enum BudgetNotifier {
         for usage in usages(in: context, month: month) {
             let budget = usage.budget
             let isReached = budget.isActive && budget.limit > 0 && usage.spent >= budget.limit
-            let wasAlerted = budget.lastAlertDate.map(month.contains) ?? false
+            // Once alerted this month, stay silent until next month, even if spending
+            // dips below the limit, the budget is toggled, or more expenses are added.
+            let wasAlertedThisMonth = budget.lastAlertDate.map(month.contains) ?? false
+            guard isReached && !wasAlertedThisMonth else { continue }
 
-            if isReached && !wasAlerted {
-                budget.lastAlertDate = now
-                let limit = budget.limit.formatted(.currency(code: currency))
-                let body = if let category = budget.category {
-                    String(localized: "budget_reached_category_body \(category.name) \(limit)")
-                } else {
-                    String(localized: "budget_reached_general_body \(limit)")
-                }
-                payloads.append(Payload(title: String(localized: "budget_reached_title"), body: body))
-            } else if !isReached && wasAlerted {
-                // Spending dropped below the limit again (edit or delete), so allow a new alert.
-                budget.lastAlertDate = nil
+            budget.lastAlertDate = now
+            let limit = budget.limit.formatted(.currency(code: currency))
+            let body = if let category = budget.category {
+                String(localized: "budget_reached_category_body \(category.name) \(limit)")
+            } else {
+                String(localized: "budget_reached_general_body \(limit)")
             }
+            payloads.append(Payload(title: String(localized: "budget_reached_title"), body: body))
         }
 
         DailyReminder.refresh(in: context, now: now)
 
         guard !payloads.isEmpty else { return }
+        // Persist the alert dates right away so a relaunch can't re-send the alert.
+        try? context.save()
         Task {
             let center = UNUserNotificationCenter.current()
             for payload in payloads {

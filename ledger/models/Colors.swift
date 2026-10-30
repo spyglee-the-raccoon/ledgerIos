@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-enum CategoryColor: String, Codable, CaseIterable, Identifiable {
+nonisolated enum CategoryColor: String, Codable, CaseIterable, Identifiable, Sendable {
     case primary, red, orange, yellow, green, mint, teal, cyan, blue, indigo, purple, pink, brown, gray
 
     var id: String { rawValue }

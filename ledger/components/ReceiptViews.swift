@@ -141,6 +141,83 @@ struct ReceiptItemRowView: View {
     }
 }
 
+/// Adds a product line or fixes one that was recognized incorrectly.
+struct ReceiptItemEditorView: View {
+    let isNew: Bool
+    let onSave: (ParsedReceiptItem) -> Void
+
+    @State private var item: ParsedReceiptItem
+    @Environment(\.dismiss) private var dismiss
+
+    init(item: ParsedReceiptItem, isNew: Bool, onSave: @escaping (ParsedReceiptItem) -> Void) {
+        self.isNew = isNew
+        self.onSave = onSave
+        _item = State(initialValue: item)
+    }
+
+    private var isValid: Bool {
+        !item.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && item.quantity > 0 && item.totalPrice >= 0
+    }
+
+    /// Keeps the line total in step with quantity × unit price; the total can still
+    /// be changed afterwards, e.g. for a discounted line.
+    private func updateTotal() {
+        var total = item.quantity * item.unitPrice
+        var rounded = Decimal()
+        NSDecimalRound(&rounded, &total, 2, .plain)
+        item.totalPrice = rounded
+    }
+
+    private func save() {
+        item.name = item.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        onSave(item)
+        dismiss()
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("name") {
+                    TextField("name", text: $item.name)
+                }
+                Section {
+                    LabeledContent("quantity") {
+                        TextField("quantity", value: $item.quantity, format: .number)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    LabeledContent("unit_price") {
+                        TextField("unit_price", value: $item.unitPrice, format: .number)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    LabeledContent("total_price") {
+                        TextField("total_price", value: $item.totalPrice, format: .number)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                    }
+                }
+            }
+            .onChange(of: item.quantity) { updateTotal() }
+            .onChange(of: item.unitPrice) { updateTotal() }
+            .navigationTitle(isNew ? "add_item" : "edit_item")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(role: .close) { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(action: save) {
+                        Image(systemName: "arrow.down.circle")
+                    }
+                    .disabled(!isValid)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
 #Preview {
     List {
         ReceiptItemRowView(name: "MLIJEKO 2,8% 1L", quantity: 2, unitPrice: 1.29, totalPrice: 2.58)

@@ -5,6 +5,7 @@
 //  Created by Maksym Bahrov on 09.09.2026..
 //
 
+import AppIntents
 import SwiftUI
 import SwiftData
 
@@ -20,7 +21,7 @@ struct ContentView: View {
 
     var body: some View {
 //        if isLoggedIn {
-            MainView()
+            MainView(isLocked: isLocked)
                 .blur(radius: blurRadius)
                 .overlay {
                     if isLocked {
@@ -46,6 +47,12 @@ struct ContentView: View {
                 }
                 .onChange(of: scenePhase, initial: true) { _, phase in
                     if phase == .active { try? RecurrenceEngine.generateDue(in: modelContext) }
+                    // Widgets are only visible outside the app, so refresh them when leaving it.
+                    if phase == .active || phase == .background {
+                        WidgetSnapshotWriter.update(in: modelContext)
+                        // Siri phrases mention category and account names, which may have changed.
+                        LedgerShortcuts.updateAppShortcutParameters()
+                    }
                 }
 //        } else {
 //            NavigationStack {

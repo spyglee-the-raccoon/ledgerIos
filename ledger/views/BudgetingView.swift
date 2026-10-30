@@ -111,67 +111,11 @@ private struct BudgetCardView: View {
     @Bindable var budget: Budget
     let spent: Decimal
 
-    private var usage: Double { budget.usage(of: spent) }
-
-    private var remaining: Decimal { budget.limit - spent }
-
-    private var barColor: Color {
-        guard budget.isActive else { return .gray }
-        switch usage {
-        case ..<0.8: return .green
-        case ..<1: return .orange
-        default: return .red
-        }
-    }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                if let category = budget.category {
-                    CategoryImageView(systemImage: category.systemImage, color: category.color)
-                }
-                VStack(alignment: .leading) {
-                    if let category = budget.category {
-                        Text(category.name)
-                    } else {
-                        Text("general_budget")
-                    }
-                    if budget.limit > 0 {
-                        Group {
-                            if remaining >= 0 {
-                                Text("budget_left \(remaining, format: .currency(code: currency))")
-                            } else {
-                                Text("budget_over \(-remaining, format: .currency(code: currency))")
-                            }
-                        }
-                        .font(.subheadline)
-                        .foregroundStyle(remaining >= 0 ? Color.secondary : Color.red)
-                    }
-                }
-                .padding(.horizontal, 2)
-                Spacer()
-                Toggle("active", isOn: $budget.isActive)
-                    .labelsHidden()
-            }
-
-            HStack {
-                Text(spent, format: .currency(code: currency))
-                    .font(.default.bold())
-                Text(verbatim: "/")
-                    .foregroundStyle(.secondary)
-                Text(budget.limit, format: .currency(code: currency))
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text(usage, format: .percent.precision(.fractionLength(0)))
-                    .font(.default.bold())
-                    .foregroundStyle(barColor)
-            }
-
-            ProgressView(value: min(usage, 1))
-                .tint(barColor)
+        BudgetCardContent(data: BudgetCardData(budget, spent: spent), currencyCode: currency) {
+            Toggle("active", isOn: $budget.isActive)
+                .labelsHidden()
         }
-        .padding(.vertical, 4)
-        .opacity(budget.isActive ? 1 : 0.5)
     }
 }
 

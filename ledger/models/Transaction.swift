@@ -7,12 +7,6 @@
 import Foundation
 import SwiftData
 
-enum TransactionKind: String, Codable, CaseIterable, Identifiable {
-    case income, expense, transfer
-    
-    var id: String { rawValue }
-}
-
 struct TransactionDraft {
     var amount: Decimal = 0
     var kind: TransactionKind = .expense
@@ -77,5 +71,17 @@ final class Transaction {
         note.localizedStandardContains(query)
             || (category?.name.localizedStandardContains(query) ?? false)
             || (receiptItems ?? []).contains { $0.name.localizedStandardContains(query) }
+    }
+}
+
+extension TransactionCardData {
+    init(_ transaction: Transaction) {
+        self.init(
+            kind: transaction.kind,
+            amount: transaction.amount,
+            date: transaction.date,
+            note: transaction.note,
+            category: transaction.category.map { CategoryLabel($0) }
+        )
     }
 }

@@ -58,3 +58,9 @@ final class Category {
         self.categoryKind = categoryKind
     }
 }
+
+extension CategoryLabel {
+    init(_ category: Category) {
+        self.init(name: category.name, systemImage: category.systemImage, color: category.color)
+    }
+}

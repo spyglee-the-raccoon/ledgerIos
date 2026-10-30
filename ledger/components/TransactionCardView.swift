@@ -20,49 +20,9 @@ struct TransactionCardView: View {
         self.transaction = transaction
     }
     
-    var isTransfer: Bool { transaction.kind == .transfer }
-    
-    private func getAmountColor(_ transaction: Transaction) -> Color {
-        switch (transaction.kind) {
-        case .expense:
-            return .red
-        case .income:
-            return .green
-        case .transfer:
-            return .primary
-        }
-    }
-    
     var body: some View {
         NavigationLink(destination: AddTransactionView(transaction: transaction)) {
-            HStack {
-                if isTransfer {
-                    CategoryImageView(systemImage: "arrow.trianglehead.2.counterclockwise.rotate.90", color: .gray)
-                    title(Text("transfer"))
-                } else if let category = transaction.category {
-                    CategoryImageView(systemImage: category.systemImage, color: category.color)
-                    title(
-                        Text(category.name)
-                            .font(.default)
-                            .foregroundStyle(.primary)
-                    )
-                } else {
-                    CategoryImageView(systemImage: "questionmark", color: .gray)
-                    title(
-                        Text("uncategorized")
-                            .font(.default)
-                            .foregroundStyle(.primary)
-                    )
-                }
-                Spacer()
-                Text(transaction.amount, format: .currency(code: currency))
-                    .font(.default.bold())
-                    .foregroundStyle(getAmountColor(transaction))
-                    .padding(.horizontal, 2)
-                Text(transaction.date .formatted(date: .omitted, time: .shortened))
-                    .font(.default)
-                    .foregroundStyle(.primary)
-            }
+            TransactionCardContent(data: TransactionCardData(transaction), currencyCode: currency)
         }
         .contextMenu {
             Button {
@@ -93,18 +53,6 @@ struct TransactionCardView: View {
         if !alreadyAdded {
             collection.transactions.append(transaction)
         }
-    }
-
-    private func title(_ text: Text) -> some View {
-        VStack(alignment: .leading) {
-            text
-            if transaction.note != "" {
-                Text(transaction.note)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.horizontal, 2)
     }
 }
 

@@ -27,6 +27,8 @@ struct SettingsView: View {
     @State private var exportTransactionCount = 0
     @State private var exportedCount: Int?
     @State private var exportError: String?
+    @State private var isPaywallPresented = false
+    @Environment(SubscriptionManager.self) private var subscriptionManager
 
     var body: some View {
         List {
@@ -90,29 +92,24 @@ struct SettingsView: View {
                 }
             }
             Section("statistics") {
-                NavigationLink(destination: IncomeExpenseStatisticView()) {
-                    Image(systemName: "arrow.up.arrow.down")
-                        .foregroundStyle(.green)
-                    Text("income_expense")
+                statisticLink("income_expense", systemImage: "arrow.up.arrow.down", color: .green) {
+                    IncomeExpenseStatisticView()
                 }
-                NavigationLink(destination: SavingStatisticView()) {
-                    Image(systemName: "tray.and.arrow.down")
-                        .foregroundStyle(.orange)
-                    Text("savings")
+                statisticLink("savings", systemImage: "tray.and.arrow.down", color: .orange) {
+                    SavingStatisticView()
                 }
-                NavigationLink(destination: TopCategoriesStatisticView()) {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                        .foregroundStyle(.purple)
-                    Text("top categories")
+                statisticLink("top categories", systemImage: "chart.line.uptrend.xyaxis", color: .purple) {
+                    TopCategoriesStatisticView()
                 }
-                NavigationLink(destination: PriceComparisonView()) {
-                    Image(systemName: "cart")
-                        .foregroundStyle(.teal)
-                    Text("price_comparison")
+                statisticLink("price_comparison", systemImage: "cart", color: .teal) {
+                    PriceComparisonView()
                 }
             }
         }
         .navigationTitle("settings")
+        .sheet(isPresented: $isPaywallPresented) {
+            PaywallView()
+        }
         .fileImporter(
             isPresented: $isImporterPresented,
             allowedContentTypes: [.commaSeparatedText, .plainText],
@@ -173,6 +170,36 @@ struct SettingsView: View {
         }
     }
 
+    @ViewBuilder
+    private func statisticLink<Destination: View>(
+        _ title: LocalizedStringKey,
+        systemImage: String,
+        color: Color,
+        @ViewBuilder destination: () -> Destination
+    ) -> some View {
+        if subscriptionManager.isSubscribed {
+            NavigationLink(destination: destination()) {
+                Image(systemName: systemImage)
+                    .foregroundStyle(color)
+                Text(title)
+            }
+        } else {
+            Button {
+                isPaywallPresented = true
+            } label: {
+                HStack {
+                    Image(systemName: systemImage)
+                        .foregroundStyle(color)
+                    Text(title)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Image(systemName: "lock.fill")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
     private func prepareExport() {
         do {
             let export = try CSVExporter.makeFiles(from: modelContext)
@@ -220,5 +247,7 @@ struct SettingsView: View {
 
 
 #Preview {
-    SettingsView().modelContainer(makeMainViewPreviewContainer())
+    SettingsView()
+        .modelContainer(makeMainViewPreviewContainer())
+        .environment(SubscriptionManager())
 }

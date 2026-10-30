@@ -13,15 +13,26 @@ enum MainViewActiveSheet: Identifiable {
     var id: Self { self }
 }
 
+/// Screens pushed when opened from a widget.
+enum MainViewDestination: Hashable {
+    case budgeting, sources
+}
+
 struct MainView: View {
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.horizontalSizeClass) var sizeClass
+
+    /// While the app lock is shown, quick actions wait instead of opening a sheet over it.
+    var isLocked = false
     
     @State private var activeSheet: MainViewActiveSheet?
+    @State private var destination: MainViewDestination?
     @State private var currentMonth = DateInterval.month(containing: .now)
     @State private var thisMonth = DateInterval.month(containing: .now)
     @State private var sharedReceiptText: String?
+    /// Set by the Scan quick action so the add sheet opens straight into the scanner.
+    @State private var startsScanning = false
 
     /// Only the oldest transaction is needed to know how far back the user can swipe.
     @Query(MainView.earliestTransactionDescriptor) private var earliestTransactions: [Transaction]
@@ -59,13 +70,23 @@ struct MainView: View {
                     }
                 }
             }
-            .sheet(item: $activeSheet, onDismiss: { sharedReceiptText = nil }) { sheet in
+            .sheet(item: $activeSheet, onDismiss: {
+                sharedReceiptText = nil
+                startsScanning = false
+            }) { sheet in
                 switch sheet {
                 case .add: NavigationStack {
-                    AddTransactionView(sharedReceiptText: sharedReceiptText).navigationTitle("add_transaction")
+                    AddTransactionView(sharedReceiptText: sharedReceiptText, startsScanning: startsScanning)
+                        .navigationTitle("add_transaction")
                 }
                 case .expenses: ExpensesView()
                 case .incomes: IncomesView()
+                }
+            }
+            .navigationDestination(item: $destination) { destination in
+                switch destination {
+                case .budgeting: BudgetingView()
+                case .sources: SourcesCompoundView()
                 }
             }
         }.toolbarVisibility(.visible)
@@ -78,7 +99,37 @@ struct MainView: View {
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active { refreshCurrentMonth() }
         }
-        .onOpenURL(perform: handleSharedReceipt)
+        .onOpenURL { url in
+            if let route = AppRoute(url: url) {
+                AppRouter.shared.pending = route
+            } else {
+                handleSharedReceipt(url)
+            }
+        }
+        .onChange(of: AppRouter.shared.pending, initial: true) { performPendingRoute() }
+        .onChange(of: isLocked) { performPendingRoute() }
+    }
+
+    /// Opens what a quick action or widget asked for, once the app is unlocked.
+    private func performPendingRoute() {
+        guard !isLocked, let route = AppRouter.shared.pending else { return }
+        AppRouter.shared.pending = nil
+        switch route {
+        case .addTransaction:
+            activeSheet = .add
+        case .scanReceipt:
+            startsScanning = true
+            activeSheet = .add
+        case .main:
+            activeSheet = nil
+            destination = nil
+        case .budgeting:
+            activeSheet = nil
+            destination = .budgeting
+        case .sources:
+            activeSheet = nil
+            destination = .sources
+        }
     }
 
     /// Handles `ladger://scan?text=...` sent by the share extension after it recognized a receipt photo.
