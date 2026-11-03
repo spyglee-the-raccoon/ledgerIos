@@ -1,0 +1,107 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "6C1E2A47",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_developerTeamID" : "2HG73C3274",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "HRV",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "8F3B5D21",
+      "localizations" : [
+
+      ],
+      "name" : "Ledger Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "2.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "A1D4E7B2",
+          "introductoryOffer" : {
+            "internalID" : "C3F6A9D4",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Unlock all statistics, billed monthly.",
+              "displayName" : "Ledger Pro Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "work.spyglee.ledger.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Ledger Pro Monthly",
+          "subscriptionGroupID" : "8F3B5D21",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "B2E5F8C3",
+          "introductoryOffer" : {
+            "internalID" : "D4A7B0E5",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Unlock all statistics, billed yearly.",
+              "displayName" : "Ledger Pro Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "work.spyglee.ledger.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Ledger Pro Yearly",
+          "subscriptionGroupID" : "8F3B5D21",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

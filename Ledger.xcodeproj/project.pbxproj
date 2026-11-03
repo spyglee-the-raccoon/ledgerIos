@@ -59,6 +59,7 @@
 		5036648B3094F27000751566 /* LedgerWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LedgerWidgetsExtension.entitlements; sourceTree = "<group>"; };
 		5036933E30723D4F00F6FD67 /* share with Ledger.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "share with Ledger.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5036934E30723F0200F6FD67 /* ledger-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ledger-Info.plist"; sourceTree = "<group>"; };
+		50A1B2C330F0000100000001 /* Ledger.storekit */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcode.storekit; path = Ledger.storekit; sourceTree = "<group>"; };
 		50CB66593051F0C3008B8845 /* Ledger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ledger.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		50E373013077DB60007E5A91 /* LedgerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LedgerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -172,6 +173,7 @@
 			children = (
 				5036648B3094F27000751566 /* LedgerWidgetsExtension.entitlements */,
 				5036934E30723F0200F6FD67 /* ledger-Info.plist */,
+				50A1B2C330F0000100000001 /* Ledger.storekit */,
 				50CB665B3051F0C3008B8845 /* ledger */,
 				5036933F30723D4F00F6FD67 /* share with ledger */,
 				50E373023077DB60007E5A91 /* ledgerTests */,
@@ -519,7 +521,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "work.spyglee.ledger.share-with-ledger";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -548,7 +550,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "work.spyglee.ledger.share-with-ledger";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -714,7 +716,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = work.spyglee.ledger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -754,7 +756,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = work.spyglee.ledger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

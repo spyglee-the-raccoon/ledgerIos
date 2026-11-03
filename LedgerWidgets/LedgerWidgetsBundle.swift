@@ -11,8 +11,10 @@ import SwiftUI
 @main
 struct LedgerWidgetsBundle: WidgetBundle {
     var body: some Widget {
-        BudgetWidget()
+        // The app icon's long-press menu only offers the first widget's families,
+        // so lead with the one that supports both small and medium.
         MonthChartWidget()
+        BudgetWidget()
         RecentTransactionsWidget()
     }
 }

@@ -12,7 +12,6 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.modelContext) private var modelContext
-//    @State private var isLoggedIn: Bool = false
     @State private var blurRadius: CGFloat = 0
     @AppStorage(AppLock.storageKey) private var isBiometricsRequired: Bool = false
     @State private var isLocked: Bool = UserDefaults.standard.bool(forKey: AppLock.storageKey)
@@ -20,45 +19,39 @@ struct ContentView: View {
     @State private var shouldPromptOnActive: Bool = false
 
     var body: some View {
-//        if isLoggedIn {
-            MainView(isLocked: isLocked)
-                .blur(radius: blurRadius)
-                .overlay {
-                    if isLocked {
-                        LockView(onUnlock: unlock)
-                    }
+        MainView(isLocked: isLocked)
+            .blur(radius: blurRadius)
+            .overlay {
+                if isLocked {
+                    LockView(onUnlock: unlock)
                 }
-                .onChange(of: scenePhase) { oldPhase, newPhase in
-                    if newPhase == .inactive {
-                        withAnimation { blurRadius = 20 }
-                    } else {
-                        withAnimation { blurRadius = 0 }
-                    }
-                    if newPhase == .background && isBiometricsRequired {
-                        isLocked = true
-                        shouldPromptOnActive = true
-                    } else if newPhase == .active && isLocked && shouldPromptOnActive {
-                        shouldPromptOnActive = false
-                        unlock()
-                    }
+            }
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                if newPhase == .inactive {
+                    withAnimation { blurRadius = 20 }
+                } else {
+                    withAnimation { blurRadius = 0 }
                 }
-                .task {
-                    if isLocked { unlock() }
+                if newPhase == .background && isBiometricsRequired {
+                    isLocked = true
+                    shouldPromptOnActive = true
+                } else if newPhase == .active && isLocked && shouldPromptOnActive {
+                    shouldPromptOnActive = false
+                    unlock()
                 }
-                .onChange(of: scenePhase, initial: true) { _, phase in
-                    if phase == .active { try? RecurrenceEngine.generateDue(in: modelContext) }
-                    // Widgets are only visible outside the app, so refresh them when leaving it.
-                    if phase == .active || phase == .background {
-                        WidgetSnapshotWriter.update(in: modelContext)
-                        // Siri phrases mention category and account names, which may have changed.
-                        LedgerShortcuts.updateAppShortcutParameters()
-                    }
+            }
+            .task {
+                if isLocked { unlock() }
+            }
+            .onChange(of: scenePhase, initial: true) { _, phase in
+                if phase == .active { try? RecurrenceEngine.generateDue(in: modelContext) }
+                // Widgets are only visible outside the app, so refresh them when leaving it.
+                if phase == .active || phase == .background {
+                    WidgetSnapshotWriter.update(in: modelContext)
+                    // Siri phrases mention category and account names, which may have changed.
+                    LedgerShortcuts.updateAppShortcutParameters()
                 }
-//        } else {
-//            NavigationStack {
-//                LogInView(onLoggedIn: { isLoggedIn = true })
-//            }
-//        }
+            }
     }
 
     private func unlock() {

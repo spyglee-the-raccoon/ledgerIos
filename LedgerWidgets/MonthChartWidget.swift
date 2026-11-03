@@ -17,17 +17,58 @@ struct MonthChartWidget: Widget {
         }
         .configurationDisplayName("this_month_balance")
         .description("widget_chart_description")
-        .supportedFamilies([.systemSmall])
+        .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
 
 struct MonthChartWidgetView: View {
     let entry: SnapshotEntry
 
+    @Environment(\.widgetFamily) private var family
+
     private let innerRadiusRatio: CGFloat = 0.618
 
     var body: some View {
-        if let snapshot = entry.snapshot {
+        if family == .systemMedium, let snapshot = entry.snapshot {
+            HStack(spacing: 16) {
+                ring(snapshot)
+                legend(snapshot)
+            }
+        } else {
+            ring(entry.snapshot)
+        }
+    }
+
+    /// The top categories of the month next to the ring in the medium size.
+    private func legend(_ snapshot: WidgetSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if snapshot.slices.isEmpty {
+                Text("widget_chart_description")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(Array(snapshot.slices.prefix(4).enumerated()), id: \.offset) { _, slice in
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(slice.color.color)
+                            .frame(width: 8, height: 8)
+                        Text(slice.name)
+                            .font(.caption)
+                            .lineLimit(1)
+                        Spacer(minLength: 4)
+                        Text(slice.amount, format: .currency(code: snapshot.currencyCode).precision(.fractionLength(0)))
+                            .font(.caption.bold())
+                            .lineLimit(1)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private func ring(_ snapshot: WidgetSnapshot?) -> some View {
+        if let snapshot {
             chart(snapshot.slices)
                 .chartBackground { proxy in
                     GeometryReader { geometry in
@@ -83,6 +124,13 @@ struct MonthChartWidgetView: View {
 }
 
 #Preview(as: .systemSmall) {
+    MonthChartWidget()
+} timeline: {
+    SnapshotEntry(date: .now, snapshot: .sample)
+    SnapshotEntry(date: .now, snapshot: WidgetSnapshot.sample.current(at: .now.addingTimeInterval(40 * 86_400)))
+}
+
+#Preview(as: .systemMedium) {
     MonthChartWidget()
 } timeline: {
     SnapshotEntry(date: .now, snapshot: .sample)
