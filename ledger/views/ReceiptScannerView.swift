@@ -35,9 +35,6 @@ struct ReceiptScannerView: UIViewControllerRepresentable {
     }
 
     final class Coordinator: NSObject, VNDocumentCameraViewControllerDelegate {
-        /// Longest side of a stored page; enough to read the receipt, small enough to store many.
-        private static let maxPhotoDimension: CGFloat = 1600
-
         let onScanFinished: () -> Void
         let onPagesScanned: ([Data]) -> Void
         let onTextRecognized: (String) -> Void
@@ -62,7 +59,7 @@ struct ReceiptScannerView: UIViewControllerRepresentable {
             onDismiss()
 
             Task {
-                onPagesScanned(images.compactMap(Self.photoData(from:)))
+                onPagesScanned(images.compactMap(SharedReceiptPhotos.photoData(from:)))
 
                 var transcripts: [String] = []
                 for page in pages {
@@ -81,17 +78,6 @@ struct ReceiptScannerView: UIViewControllerRepresentable {
         func documentCameraViewController(_ controller: VNDocumentCameraViewController, didFailWithError error: Error) {
             print("Document camera failed: \(error)")
             onDismiss()
-        }
-
-        private static func photoData(from image: UIImage) -> Data? {
-            let scale = min(1, maxPhotoDimension / max(image.size.width, image.size.height))
-            let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
-            let format = UIGraphicsImageRendererFormat()
-            format.scale = 1
-            let resized = UIGraphicsImageRenderer(size: size, format: format).image { _ in
-                image.draw(in: CGRect(origin: .zero, size: size))
-            }
-            return resized.jpegData(compressionQuality: 0.6)
         }
 
         private static func recognizeText(in image: CGImage) async throws -> String {

@@ -31,6 +31,7 @@ struct MainView: View {
     @State private var currentMonth = DateInterval.month(containing: .now)
     @State private var thisMonth = DateInterval.month(containing: .now)
     @State private var sharedReceiptText: String?
+    @State private var sharedReceiptPhotos: [Data] = []
     /// Set by the Scan quick action so the add sheet opens straight into the scanner.
     @State private var startsScanning = false
 
@@ -72,11 +73,16 @@ struct MainView: View {
             }
             .sheet(item: $activeSheet, onDismiss: {
                 sharedReceiptText = nil
+                sharedReceiptPhotos = []
                 startsScanning = false
             }) { sheet in
                 switch sheet {
                 case .add: NavigationStack {
-                    AddTransactionView(sharedReceiptText: sharedReceiptText, startsScanning: startsScanning)
+                    AddTransactionView(
+                        sharedReceiptText: sharedReceiptText,
+                        sharedReceiptPhotos: sharedReceiptPhotos,
+                        startsScanning: startsScanning
+                    )
                         .navigationTitle("add_transaction")
                 }
                 case .expenses: ExpensesView()
@@ -133,12 +139,15 @@ struct MainView: View {
     }
 
     /// Handles `ladger://scan?text=...` sent by the share extension after it recognized a receipt photo.
+    /// The receipt's pages come separately through `SharedReceiptPhotos`.
     private func handleSharedReceipt(_ url: URL) {
-        guard url.scheme == "ladger", url.host() == "scan",
-              let text = URLComponents(url: url, resolvingAgainstBaseURL: false)?
-                .queryItems?.first(where: { $0.name == "text" })?.value,
-              !text.isEmpty else { return }
-        sharedReceiptText = text
+        guard url.scheme == "ladger", url.host() == "scan" else { return }
+        let text = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+            .queryItems?.first(where: { $0.name == "text" })?.value ?? ""
+        let photos = SharedReceiptPhotos.take()
+        guard !text.isEmpty || !photos.isEmpty else { return }
+        sharedReceiptText = text.isEmpty ? nil : text
+        sharedReceiptPhotos = photos
         activeSheet = .add
     }
     

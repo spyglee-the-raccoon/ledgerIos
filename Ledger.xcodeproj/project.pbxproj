@@ -53,6 +53,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		50259ED230A38F1300A769C9 /* share with Ledger.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = "share with Ledger.entitlements"; path = "share with ledger/share with Ledger.entitlements"; sourceTree = "<group>"; };
 		503664763094F24100751566 /* LedgerWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LedgerWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		503664783094F24100751566 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = /System/Library/Frameworks/WidgetKit.framework; sourceTree = "<absolute>"; };
 		5036647A3094F24100751566 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = /System/Library/Frameworks/SwiftUI.framework; sourceTree = "<absolute>"; };
@@ -91,6 +92,13 @@
 			);
 			target = 5036933D30723D4F00F6FD67 /* share with Ledger */;
 		};
+		50A1B2C330F0000100000002 /* Exceptions for "ledger" folder in "share with Ledger" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				shared/SharedReceiptPhotos.swift,
+			);
+			target = 5036933D30723D4F00F6FD67 /* share with Ledger */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -114,6 +122,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				503664A03094F30000751566 /* Exceptions for "ledger" folder in "LedgerWidgetsExtension" target */,
+				50A1B2C330F0000100000002 /* Exceptions for "ledger" folder in "share with Ledger" target */,
 			);
 			path = ledger;
 			sourceTree = "<group>";
@@ -171,6 +180,7 @@
 		50CB66503051F0C2008B8845 = {
 			isa = PBXGroup;
 			children = (
+				50259ED230A38F1300A769C9 /* share with Ledger.entitlements */,
 				5036648B3094F27000751566 /* LedgerWidgetsExtension.entitlements */,
 				5036934E30723F0200F6FD67 /* ledger-Info.plist */,
 				50A1B2C330F0000100000001 /* Ledger.storekit */,
@@ -508,6 +518,7 @@
 		5036934A30723D4F00F6FD67 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "share with ledger/share with Ledger.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2HG73C3274;
@@ -524,6 +535,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "work.spyglee.ledger.share-with-ledger";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -537,6 +549,7 @@
 		5036934B30723D4F00F6FD67 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "share with ledger/share with Ledger.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2HG73C3274;
@@ -553,6 +566,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "work.spyglee.ledger.share-with-ledger";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;

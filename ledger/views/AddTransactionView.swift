@@ -20,6 +20,8 @@ private let kaChingSoundID: SystemSoundID? = {
 struct AddTransactionView: View {
     var transaction: Transaction?
     var sharedReceiptText: String?
+    /// Pages of a receipt shared from another app, saved with the transaction like scanned pages.
+    var sharedReceiptPhotos: [Data] = []
     /// Opens the receipt scanner right away, for the Scan quick action.
     var startsScanning = false
 
@@ -41,9 +43,10 @@ struct AddTransactionView: View {
     @Query var categories: [Category]
     @Query var sources: [Source]
     
-    init(transaction: Transaction? = nil, selectedKind: TransactionKind = .expense, sharedReceiptText: String? = nil, startsScanning: Bool = false) {
+    init(transaction: Transaction? = nil, selectedKind: TransactionKind = .expense, sharedReceiptText: String? = nil, sharedReceiptPhotos: [Data] = [], startsScanning: Bool = false) {
         self.transaction = transaction
         self.sharedReceiptText = sharedReceiptText
+        self.sharedReceiptPhotos = sharedReceiptPhotos
         self.startsScanning = startsScanning
         var draft: TransactionDraft
         if let transaction {
@@ -347,6 +350,9 @@ struct AddTransactionView: View {
         .onAppear(perform: suggestSources)
         .onChange(of: sharedReceiptText, initial: true) {
             if let sharedReceiptText { parseText(sharedReceiptText) }
+        }
+        .onChange(of: sharedReceiptPhotos, initial: true) {
+            if !sharedReceiptPhotos.isEmpty && !isEditing { scannedPhotos = sharedReceiptPhotos }
         }
         .onChange(of: startsScanning, initial: true) {
             if startsScanning && !isEditing && VNDocumentCameraViewController.isSupported { onScan() }
